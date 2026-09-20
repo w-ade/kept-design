@@ -1,0 +1,45 @@
+[
+  {
+    "id": "n3",
+    "title": "iOS stack: the roadmap and the conversation disagree",
+    "date": "2026-09-20",
+    "tags": [
+      "ios",
+      "decision"
+    ],
+    "body": [
+      "The web client is 3,754 lines, and almost none of it is portable. The 13 screen components (~3,000 lines) are Base UI and CSS, which is DOM-only. repository.ts is a localStorage mock that Supabase replaces. uploads.ts uses IndexedDB and createObjectURL. theme.ts writes data-theme onto <html>.",
+      "What actually survives to a second client is the type definitions and the repository's function contract: Collection, Reference, Pin, and around twenty signatures. Roughly 150 lines. SwiftUI gets that too, by generating Swift types from the same Supabase schema.",
+      "So the code-sharing argument for React Native is much weaker here than it looks, and the decision comes down to feel versus the cost of two codebases. Full write-up is on the Desktop as kept-ios-stack.html.",
+      "Consequence if SwiftUI wins: D-6 and D-8 both reverse, and phases 8 through 11 of the artifact roadmap are built on the React Native assumption.",
+      "Note the conflict: D-6 is recorded as decided (react-native) and D-8 as decided (expo), but that was not re-confirmed out loud when the Expo scaffold went up, and the analysis above argues for SwiftUI. The recorded decision and the current intent need to be reconciled before phase 8 starts."
+    ]
+  },
+  {
+    "id": "n2",
+    "title": "Roadmap synced down from the artifact",
+    "date": "2026-09-20",
+    "tags": [
+      "roadmap",
+      "process"
+    ],
+    "body": [
+      "docs/roadmap/roadmap.json now holds the authoritative plan, pulled from the artifact's database on 20 September 2026: 72 issues, 240 points, 12 phases, 10 decisions. It replaced a stale 37-issue backend-only copy.",
+      "Phases are interleaved by dependency rather than run in sequence. The iOS track does not wait for the backend: p8 (iOS foundation) sits after p2, p9 (iOS library) after p5, then p10 (iOS capture) and p11 (iOS ship).",
+      "The artifact remains the source of truth and can be edited there. Re-run the sync before planning against these numbers if it has moved on. The artifact's own Overview page text is still stale \u2014 it says the UI is finished and no screen changes are expected."
+    ]
+  },
+  {
+    "id": "n1",
+    "title": "Project-management content is living on the product site",
+    "date": "2026-09-20",
+    "tags": [
+      "cleanup"
+    ],
+    "body": [
+      "Three SPA routes are really internal planning pages: /map (the system map), /ios (the dead Capacitor staging plan) and /todo (next steps and personal tasks).",
+      "They ship to production today. Decision for now is to leave them in place and revisit once this dashboard has somewhere to put them.",
+      "/ios is the most urgent of the three \u2014 it describes the abandoned Capacitor plan and contains a LAN IP in a public repo. That is KEPT-37."
+    ]
+  }
+]

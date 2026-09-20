@@ -1,0 +1,203 @@
+/* Dashboard chrome. Tokens mirror src/kept/tokens.css so the two read as one project,
+   but this file is the dashboard's own; it is never synced from kept-ui. */
+
+:root {
+  --gray-s1: hsl(0deg 0% 99%);
+  --gray-s2: hsl(0deg 0% 97.5%);
+  --gray-c1: hsl(0deg 0% 95.25%);
+  --gray-c2: hsl(0deg 0% 94%);
+  --gray-c3: hsl(0deg 0% 88%);
+  --gray-p1: hsl(0deg 0% 55%);
+  --gray-t1: hsl(0deg 0% 46.4%);
+  --gray-t2: hsl(0deg 0% 18%);
+
+  --content: white;
+  --line: hsl(0deg 0% 0% / 8%);
+  --ink: var(--gray-t2);
+  --ink-2: var(--gray-t1);
+  --ink-3: var(--gray-p1);
+
+  --accent: hsl(156deg 81% 29%);
+  --warn: hsl(10deg 86% 48%);
+
+  --radius-6: 0.375rem;
+  --radius-8: 0.5rem;
+
+  --font-sans: 'Geist Variable', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --sidebar: 14rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gray-s1: hsl(0deg 0% 7.5%);
+    --gray-s2: hsl(0deg 0% 10%);
+    --gray-c1: hsl(0deg 0% 13%);
+    --gray-c2: hsl(0deg 0% 16%);
+    --gray-c3: hsl(0deg 0% 32%);
+    --gray-p1: hsl(0deg 0% 60%);
+    --gray-t1: hsl(0deg 0% 70%);
+    --gray-t2: hsl(0deg 0% 90%);
+
+    --content: black;
+    --line: hsl(0deg 0% 100% / 14%);
+    --accent: hsl(156deg 68% 54%);
+    --warn: hsl(10deg 96% 63%);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { color-scheme: light dark; }
+
+body {
+  margin: 0;
+  background: var(--content);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+/* ─── Layout ─── */
+
+.shell { display: flex; min-height: 100vh; }
+
+.side {
+  width: var(--sidebar);
+  flex: none;
+  border-right: 1px solid var(--line);
+  padding: 1.5rem 1rem;
+  background: var(--gray-s2);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.brand {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.brand-sub {
+  color: var(--ink-3);
+  font-size: 0.8125rem;
+  margin-bottom: 1.5rem;
+}
+
+.nav { display: flex; flex-direction: column; gap: 0.125rem; }
+
+.nav button {
+  appearance: none;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink-2);
+  text-align: left;
+  padding: 0.375rem 0.5rem;
+  border-radius: var(--radius-6);
+  cursor: pointer;
+}
+
+.nav button:hover { background: var(--gray-c1); color: var(--ink); }
+.nav button[aria-current='page'] { background: var(--gray-c2); color: var(--ink); font-weight: 500; }
+
+.main { flex: 1; min-width: 0; padding: 2.5rem 2.5rem 6rem; max-width: 64rem; }
+
+h1 { font-size: 1.375rem; font-weight: 500; margin: 0 0 0.375rem; }
+h2 { font-size: 1rem; font-weight: 500; margin: 2rem 0 0.75rem; }
+h3 { font-size: 0.9375rem; font-weight: 500; margin: 0; }
+
+.lede { color: var(--ink-2); margin: 0 0 1.5rem; max-width: 46em; }
+
+/* ─── Bits ─── */
+
+.stats { display: flex; flex-wrap: wrap; gap: 2rem; padding: 1rem 0; border-block: 1px solid var(--line); }
+.stat-n { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.stat-l { color: var(--ink-3); font-size: 0.8125rem; }
+
+.row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.key {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-3);
+  flex: none;
+  width: 5.5rem;
+}
+
+.row-body { flex: 1; min-width: 0; }
+.row-title { }
+.row-sum { color: var(--ink-2); font-size: 0.875rem; }
+
+.pill {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.0625rem 0.5rem;
+  flex: none;
+}
+
+.pill[data-status='done'] { color: var(--accent); border-color: currentColor; }
+.pill[data-status='in_progress'] { color: var(--warn); border-color: currentColor; }
+
+.est { font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-3); flex: none; }
+
+.card { border: 1px solid var(--line); border-radius: var(--radius-8); padding: 1rem; margin-bottom: 0.75rem; }
+.card-q { color: var(--ink-2); font-size: 0.875rem; margin: 0.375rem 0 0.75rem; }
+
+.opt { display: flex; gap: 0.625rem; padding: 0.375rem 0; align-items: baseline; }
+.opt-l { font-weight: 500; font-size: 0.875rem; flex: none; }
+.opt-d { color: var(--ink-2); font-size: 0.8125rem; }
+.tag { font-size: 0.6875rem; color: var(--accent); flex: none; }
+
+.filters { display: flex; gap: 0.375rem; flex-wrap: wrap; margin: 1rem 0; }
+.filters button {
+  appearance: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  border-radius: 999px;
+  padding: 0.1875rem 0.625rem;
+  cursor: pointer;
+}
+.filters button[aria-pressed='true'] { background: var(--gray-c2); color: var(--ink); }
+
+.note-meta { color: var(--ink-3); font-size: 0.75rem; font-family: var(--font-mono); }
+.note p { margin: 0.5rem 0; color: var(--ink-2); }
+
+.flag {
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  border-radius: var(--radius-8);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.empty { color: var(--ink-3); font-size: 0.875rem; padding: 1rem 0; }
+
+@media (max-width: 48rem) {
+  .shell { flex-direction: column; }
+  .side { width: auto; height: auto; position: static; border-right: 0; border-bottom: 1px solid var(--line); }
+  .nav { flex-direction: row; flex-wrap: wrap; }
+  .main { padding: 1.5rem 1rem 4rem; }
+  .key { width: 4.5rem; }
+}
