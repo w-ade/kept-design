@@ -1,5 +1,23 @@
 [
   {
+    "id": "n4",
+    "title": "expo-motion-tabs — the tab bar feel we want on iOS",
+    "date": "2026-09-20",
+    "tags": [
+      "ios",
+      "motion",
+      "reference"
+    ],
+    "body": [
+      "https://github.com/rit3zh/expo-motion-tabs — an animated bottom tab bar for Expo Router. The tab bar morphs between states and a popup panel transitions in with a shared-element effect, with the panel body rendered per tab. This is the feel we want for Kept's iOS tab bar.",
+      "Caveat before anyone plans around it: it is a showcase repo, not an npm package. You clone and run it (`git clone` then `bun start`), so adopting it means lifting the AnimatedTabBar component into our tree and owning it, not adding a dependency.",
+      "It sets a floor on the stack: Expo 55, React Native 0.83, Reanimated 4, Gesture Handler 2, and expo-router. Reanimated 4 is the significant one — the shared-element morph is what it is because of that.",
+      "It only applies if React Native wins. D-6 and D-8 are recorded as decided for react-native and expo, but n3 argues for SwiftUI and those decisions were never re-confirmed out loud. If SwiftUI wins, this becomes a reference for the motion, not the code — the equivalent is a matchedGeometryEffect tab bar we build ourselves.",
+      "Usage shape: `<Tabs tabBar={(props) => <AnimatedTabBar {...props} renderPopupBody={ExamplePopupBody} />}>`.",
+      "Relates to phase p8 (iOS foundation)."
+    ]
+  },
+  {
     "id": "n3",
     "title": "iOS stack: the roadmap and the conversation disagree",
     "date": "2026-09-20",
@@ -26,7 +44,7 @@
     "body": [
       "docs/roadmap/roadmap.json now holds the authoritative plan, pulled from the artifact's database on 20 September 2026: 72 issues, 240 points, 12 phases, 10 decisions. It replaced a stale 37-issue backend-only copy.",
       "Phases are interleaved by dependency rather than run in sequence. The iOS track does not wait for the backend: p8 (iOS foundation) sits after p2, p9 (iOS library) after p5, then p10 (iOS capture) and p11 (iOS ship).",
-      "The artifact remains the source of truth and can be edited there. Re-run the sync before planning against these numbers if it has moved on. The artifact's own Overview page text is still stale \u2014 it says the UI is finished and no screen changes are expected."
+      "The artifact remains the source of truth and can be edited there. Re-run the sync before planning against these numbers if it has moved on. The artifact's own Overview page text is still stale — it says the UI is finished and no screen changes are expected."
     ]
   },
   {
@@ -39,7 +57,7 @@
     "body": [
       "Three SPA routes are really internal planning pages: /map (the system map), /ios (the dead Capacitor staging plan) and /todo (next steps and personal tasks).",
       "They ship to production today. Decision for now is to leave them in place and revisit once this dashboard has somewhere to put them.",
-      "/ios is the most urgent of the three \u2014 it describes the abandoned Capacitor plan and contains a LAN IP in a public repo. That is KEPT-37."
+      "/ios is the most urgent of the three — it describes the abandoned Capacitor plan and contains a LAN IP in a public repo. That is KEPT-37."
     ]
   }
 ]
