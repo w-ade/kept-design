@@ -3,6 +3,7 @@ import { Overview } from './views/Overview.tsx'
 import { Roadmap } from './views/Roadmap.tsx'
 import { Decisions } from './views/Decisions.tsx'
 import { Notes } from './views/Notes.tsx'
+import { Bookmarks } from './views/Bookmarks.tsx'
 import { Screens } from './views/Screens.tsx'
 import { totals } from './data.ts'
 
@@ -12,6 +13,7 @@ const TABS = [
   { id: 'decisions', label: 'Decisions', view: Decisions },
   { id: 'screens', label: 'Screens', view: Screens },
   { id: 'notes', label: 'Notes', view: Notes },
+  { id: 'bookmarks', label: 'Bookmarks', view: Bookmarks },
 ] as const
 
 // Real paths, same as the product SPA — history navigation, no reloads.

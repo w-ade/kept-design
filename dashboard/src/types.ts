@@ -60,3 +60,13 @@ export interface Note {
   tags: string[]
   body: string[]
 }
+
+// dashboard/data/bookmarks.json — links saved for reference. Newest first.
+export interface Bookmark {
+  id: string
+  url: string
+  title: string
+  note: string
+  tags: string[]
+  added: string
+}

@@ -1,9 +1,11 @@
 import roadmapJson from '../../docs/roadmap/roadmap.json'
 import notesJson from '../data/notes.json'
-import type { Note, Roadmap, Status } from './types.ts'
+import bookmarksJson from '../data/bookmarks.json'
+import type { Bookmark, Note, Roadmap, Status } from './types.ts'
 
 export const roadmap = roadmapJson as unknown as Roadmap
 export const notes = notesJson as Note[]
+export const bookmarks = bookmarksJson as Bookmark[]
 
 export const STATUS_LABEL: Record<Status, string> = {
   backlog: 'Backlog',

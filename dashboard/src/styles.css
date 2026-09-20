@@ -406,3 +406,38 @@ h3 { font-size: 0.9375rem; font-weight: 500; margin: 0; }
 @media (max-width: 48rem) {
   .screen { --pt: 0.46px; }
 }
+
+/* Bookmarks */
+.bm-form { display: flex; flex-direction: column; gap: 0.5rem; }
+.bm-form-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.bm-input {
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--ink);
+  background: var(--content);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-6);
+  padding: 0.4375rem 0.625rem;
+  flex: 1;
+  min-width: 10rem;
+}
+.bm-input:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.bm-tags-input { flex: 0 1 12rem; }
+.bm-btn {
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--ink);
+  background: var(--gray-c2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-6);
+  padding: 0.4375rem 0.875rem;
+  cursor: pointer;
+}
+.bm-btn:disabled { opacity: 0.5; cursor: default; }
+.bm-error { color: var(--warn); font-size: 0.8125rem; }
+.bm-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.bm h3 a { text-decoration: none; }
+.bm h3 a:hover { text-decoration: underline; }
+.bm p { margin: 0.5rem 0 0; color: var(--ink-2); }
+.bm-x { appearance: none; background: none; border: 0; color: var(--ink-3); font-size: 1.125rem; line-height: 1; cursor: pointer; padding: 0 0.25rem; }
+.bm-x:hover { color: var(--warn); }
