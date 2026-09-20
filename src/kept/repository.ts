@@ -1,4 +1,5 @@
 import moodeMatcha from './data/moode-matcha.json';
+import oklabSquares from './data/oklab-squares.json';
 import { loadUploads, prepareUpload, saveUpload, type StoredUpload } from './uploads.ts';
 
 // Mock repository for the lab. Same UI-facing shape the real Supabase repository will expose
@@ -59,6 +60,7 @@ interface ImportedImage {
 
 const IMPORTED: Record<string, { name: string; addedAt: string; images: ImportedImage[] }> = {
   'moode-matcha': { name: 'moode-matcha', addedAt: '2026-09-18', images: moodeMatcha },
+  'oklab-squares': { name: 'oklab-squares', addedAt: '2026-09-20', images: oklabSquares },
 };
 
 // ─── Saved edits ───
