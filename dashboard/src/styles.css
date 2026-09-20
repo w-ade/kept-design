@@ -201,3 +201,208 @@ h3 { font-size: 0.9375rem; font-weight: 500; margin: 0; }
   .main { padding: 1.5rem 1rem 4rem; }
   .key { width: 4.5rem; }
 }
+
+/* ─── Screens (iOS wireframes) ─── */
+/* iPhone 17 Pro: 402x874pt. Everything below is in points via --pt, so the
+   frame stays dimensionally honest — change --pt to resize, nothing else. */
+
+.screen { margin-bottom: 3.5rem; --pt: 0.58px; }
+.screen-from { margin: 0 0 1rem; }
+.screen-body { display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap; }
+
+/* Device body, straight off the Figma frame: screen 402x874 r56, 8pt bezel
+   to 418x890 r64, 5pt more to 428x900 r69. Buttons protrude 5pt. */
+.phone {
+  position: relative;
+  flex: none;
+  width: calc(428 * var(--pt));
+  padding: calc(13 * var(--pt));
+  border-radius: calc(69 * var(--pt));
+  background: var(--gray-c3);
+}
+
+/* The 5pt ring of body outside the bezel */
+.phone::before {
+  content: '';
+  position: absolute;
+  inset: calc(5 * var(--pt));
+  border-radius: calc(64 * var(--pt));
+  background: var(--gray-c2);
+  pointer-events: none;
+}
+
+/* Side buttons: action 35pt, volume 59pt x2 left; power 98pt right */
+.phone-btns { position: absolute; inset: 0; pointer-events: none; }
+.phone-btns i {
+  position: absolute;
+  width: calc(5 * var(--pt));
+  background: var(--gray-c3);
+}
+.phone-btns i:nth-child(1) { left: calc(-5 * var(--pt)); top: calc(172 * var(--pt)); height: calc(35 * var(--pt)); border-radius: calc(2 * var(--pt)) 0 0 calc(2 * var(--pt)); }
+.phone-btns i:nth-child(2) { left: calc(-5 * var(--pt)); top: calc(239 * var(--pt)); height: calc(59 * var(--pt)); border-radius: calc(2 * var(--pt)) 0 0 calc(2 * var(--pt)); }
+.phone-btns i:nth-child(3) { left: calc(-5 * var(--pt)); top: calc(317 * var(--pt)); height: calc(59 * var(--pt)); border-radius: calc(2 * var(--pt)) 0 0 calc(2 * var(--pt)); }
+.phone-btns i:nth-child(4) { right: calc(-5 * var(--pt)); top: calc(256 * var(--pt)); height: calc(98 * var(--pt)); border-radius: 0 calc(2 * var(--pt)) calc(2 * var(--pt)) 0; }
+
+.phone-screen {
+  position: relative;
+  width: calc(402 * var(--pt));
+  height: calc(874 * var(--pt));
+  border-radius: calc(56 * var(--pt));
+  background: var(--content);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro', system-ui, sans-serif;
+  font-size: calc(17 * var(--pt));
+  line-height: calc(22 / 17);
+  letter-spacing: calc(-0.43 * var(--pt));
+  color: var(--ink-3);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 59pt top safe area */
+.safe-top {
+  flex: none;
+  height: calc(59 * var(--pt));
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  padding: calc(13 * var(--pt)) calc(24 * var(--pt)) 0;
+}
+.safe-top > * { align-self: center; }
+.status-time, .status-icons { margin-top: calc(3 * var(--pt)); }
+.status-time { font-weight: 600; color: var(--ink); font-size: calc(15 * var(--pt)); letter-spacing: 0; }
+.island {
+  width: calc(112 * var(--pt));
+  height: calc(32 * var(--pt));
+  border-radius: calc(16 * var(--pt));
+  background: var(--ink);
+}
+.status-icons { justify-self: end; width: calc(30 * var(--pt)); height: calc(11 * var(--pt)); border-radius: calc(2 * var(--pt)); background: var(--gray-c3); }
+
+/* Nav: 44pt bar, +52pt for a large title */
+.nav { flex: none; padding: 0 calc(16 * var(--pt)); }
+.nav-bar {
+  height: calc(44 * var(--pt));
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  font-size: calc(17 * var(--pt));
+  letter-spacing: calc(-0.43 * var(--pt));
+}
+.nav-back { color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-title-inline { color: var(--ink); font-weight: 600; }
+.nav-action { justify-self: end; width: calc(22 * var(--pt)); height: calc(22 * var(--pt)); border-radius: calc(4 * var(--pt)); background: var(--gray-c2); }
+.nav-large {
+  height: calc(52 * var(--pt));
+  display: flex;
+  align-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro', system-ui, sans-serif;
+  font-size: calc(34 * var(--pt));
+  line-height: calc(41 / 34);
+  font-weight: 700;
+  letter-spacing: calc(0.4 * var(--pt));
+  color: var(--ink);
+}
+.nav-search {
+  height: calc(36 * var(--pt));
+  border-radius: calc(10 * var(--pt));
+  background: var(--gray-s2);
+  border: 1px solid var(--line);
+  margin-bottom: calc(8 * var(--pt));
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  padding: 0 calc(16 * var(--pt));
+  overflow: hidden;
+}
+.content-flush { padding: 0; }
+
+/* Tab bar: 49pt, floating inset per iOS 26 */
+.tabbar {
+  flex: none;
+  height: calc(49 * var(--pt));
+  margin: 0 calc(16 * var(--pt));
+  border-radius: calc(24 * var(--pt));
+  border: 1px solid var(--line);
+  background: var(--gray-s2);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  font-size: calc(10 * var(--pt));
+  font-weight: 500;
+  letter-spacing: calc(0.12 * var(--pt));
+}
+.tabbar span { display: flex; flex-direction: column; align-items: center; gap: calc(3 * var(--pt)); }
+.tabbar [aria-current='page'] { color: var(--ink); }
+.tab-dot { width: calc(18 * var(--pt)); height: calc(18 * var(--pt)); border-radius: calc(5 * var(--pt)); background: currentColor; opacity: 0.45; }
+.tabbar [aria-current='page'] .tab-dot { opacity: 1; }
+
+/* 34pt bottom safe area */
+.safe-bottom { flex: none; height: calc(34 * var(--pt)); display: grid; place-items: center; }
+.home-indicator { width: calc(140 * var(--pt)); height: calc(5 * var(--pt)); border-radius: 999px; background: var(--ink); opacity: 0.35; }
+
+/* Skeleton primitives, all in points */
+.v { display: flex; flex-direction: column; gap: calc(12 * var(--pt)); height: 100%; }
+.v-center { justify-content: center; gap: calc(14 * var(--pt)); padding: 0 calc(8 * var(--pt)); }
+.v-flush { gap: calc(8 * var(--pt)); }
+
+.sk { height: calc(9 * var(--pt)); border-radius: 999px; background: var(--gray-c2); }
+.sk-tall { height: calc(15 * var(--pt)); background: var(--gray-c3); }
+.sk-head { display: flex; flex-direction: column; gap: calc(6 * var(--pt)); padding-top: calc(4 * var(--pt)); }
+
+/* 3 across, 2pt gutters => 122pt cells */
+.sk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(2 * var(--pt)); }
+.sk-cell { aspect-ratio: 1; background: var(--gray-c1); border: 1px solid var(--line); }
+
+.sk-hero {
+  position: relative;
+  aspect-ratio: 1;
+  margin: 0 calc(-16 * var(--pt));
+  background: var(--gray-c1);
+  border-block: 1px solid var(--line);
+}
+.sk-pin { position: absolute; left: 32%; top: 40%; width: calc(14 * var(--pt)); height: calc(14 * var(--pt)); border-radius: 999px; border: calc(2 * var(--pt)) solid var(--content); background: var(--accent); }
+.sk-pin-2 { left: 64%; top: 66%; }
+
+.sk-tags { display: flex; gap: calc(6 * var(--pt)); }
+.sk-tags .sk { height: calc(24 * var(--pt)); border-radius: 999px; border: 1px solid var(--gray-c3); background: none; }
+
+.sk-rows { display: flex; flex-direction: column; }
+/* 44pt minimum row, per HIG */
+.sk-row { min-height: calc(44 * var(--pt)); display: flex; align-items: center; justify-content: space-between; gap: calc(8 * var(--pt)); border-bottom: 1px solid var(--line); }
+.sk-row .sk { flex: none; }
+.sk-chev { width: calc(7 * var(--pt)); height: calc(12 * var(--pt)); border-right: calc(2 * var(--pt)) solid var(--gray-c3); border-top: calc(2 * var(--pt)) solid var(--gray-c3); transform: rotate(45deg); }
+
+.sk-fields { display: flex; flex-direction: column; gap: calc(10 * var(--pt)); }
+.sk-field { height: calc(44 * var(--pt)); border-radius: calc(10 * var(--pt)); background: var(--gray-s2); border: 1px solid var(--gray-c3); }
+.sk-area { height: calc(88 * var(--pt)); border-radius: calc(10 * var(--pt)); background: var(--gray-s2); border: 1px solid var(--gray-c3); }
+.sk-btn { height: calc(50 * var(--pt)); border-radius: calc(12 * var(--pt)); background: var(--gray-c3); }
+.sk-apple { height: calc(50 * var(--pt)); border-radius: calc(12 * var(--pt)); background: var(--ink); opacity: 0.85; }
+.sk-mark { height: calc(28 * var(--pt)); width: calc(84 * var(--pt)); border-radius: calc(6 * var(--pt)); background: var(--gray-c3); margin: 0 auto calc(10 * var(--pt)); }
+
+.sk-camera { flex: 1; background: var(--gray-c1); }
+.sk-strip { flex: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(2 * var(--pt)); padding: 0 calc(16 * var(--pt)); }
+
+/* Annotations */
+.annos { list-style: none; margin: 0; padding: 0; flex: 1; min-width: 18rem; }
+.annos li { display: flex; gap: 0.625rem; padding: 0.5rem 0; border-bottom: 1px solid var(--line); font-size: 0.875rem; color: var(--ink-2); }
+.anno-n {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 999px;
+  border: 1px solid var(--gray-c3);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  display: grid;
+  place-items: center;
+  color: var(--ink-3);
+  margin-top: 0.125rem;
+}
+
+@media (max-width: 48rem) {
+  .screen { --pt: 0.46px; }
+}

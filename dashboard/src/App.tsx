@@ -3,12 +3,14 @@ import { Overview } from './views/Overview.tsx'
 import { Roadmap } from './views/Roadmap.tsx'
 import { Decisions } from './views/Decisions.tsx'
 import { Notes } from './views/Notes.tsx'
+import { Screens } from './views/Screens.tsx'
 import { totals } from './data.ts'
 
 const TABS = [
   { id: '', label: 'Overview', view: Overview },
   { id: 'roadmap', label: 'Roadmap', view: Roadmap },
   { id: 'decisions', label: 'Decisions', view: Decisions },
+  { id: 'screens', label: 'Screens', view: Screens },
   { id: 'notes', label: 'Notes', view: Notes },
 ] as const
 
