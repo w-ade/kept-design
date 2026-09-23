@@ -1,0 +1,179 @@
+<title>Kept iOS Screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono&display=swap">
+<style>
+  /* Tokens and type copied from kept-design/dashboard/src/styles.css */
+  :root {
+    --gray-c3: hsl(0deg 0% 88%);
+    --content: white;
+    --line: hsl(0deg 0% 0% / 8%);
+    --ink: hsl(0deg 0% 18%);
+    --ink-2: hsl(0deg 0% 46.4%);
+    --ink-3: hsl(0deg 0% 55%);
+    --warn: hsl(10deg 86% 48%);
+    --font-sans: 'Geist', 'Geist Variable', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Geist Mono', 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --gray-c3: hsl(0deg 0% 32%);
+      --content: black;
+      --line: hsl(0deg 0% 100% / 14%);
+      --ink: hsl(0deg 0% 90%);
+      --ink-2: hsl(0deg 0% 70%);
+      --ink-3: hsl(0deg 0% 60%);
+      --warn: hsl(10deg 96% 63%);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --gray-c3: hsl(0deg 0% 32%);
+    --content: black;
+    --line: hsl(0deg 0% 100% / 14%);
+    --ink: hsl(0deg 0% 90%);
+    --ink-2: hsl(0deg 0% 70%);
+    --ink-3: hsl(0deg 0% 60%);
+    --warn: hsl(10deg 96% 63%);
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--content);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding-inline: 16px;
+    padding-block: 2.5rem 6rem;
+  }
+  main { max-width: 46rem; margin: 0 auto; }
+  h1 { font-size: 1.375rem; font-weight: 500; margin: 0 0 0.375rem; }
+  h2 { font-size: 1rem; font-weight: 500; margin: 0 0 0.375rem; display: flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; align-items: baseline; }
+  code { font-family: var(--font-mono); font-size: 0.8125rem; }
+  .lede { color: var(--ink-2); margin: 0 0 1.5rem; max-width: 46em; }
+  .flag {
+    border: 1px solid var(--warn);
+    color: var(--warn);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    margin: 0 0 2.5rem;
+  }
+  .est { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 400; color: var(--ink-3); }
+  .screen { margin-bottom: 3.5rem; }
+  .row-sum { color: var(--ink-2); font-size: 0.875rem; margin: 0 0 1rem; }
+  .annos { list-style: none; margin: 0; padding: 0; }
+  .annos li { display: flex; gap: 0.625rem; padding: 0.5rem 0; border-bottom: 1px solid var(--line); font-size: 0.875rem; color: var(--ink-2); }
+  .anno-n {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 999px;
+    border: 1px solid var(--gray-c3);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    display: grid;
+    place-items: center;
+    color: var(--ink-3);
+    margin-top: 0.125rem;
+  }
+</style>
+
+<main>
+  <h1>v0.0.0 iOS screens</h1>
+  <p class="lede">Skeleton wireframes for the first native build, drawn to iPhone 17 Pro geometry: 402×874pt, 59pt top inset, 34pt bottom inset. Every measurement is in points. Derived from the web routes in <code>src/kept/KeptApp.tsx</code>. A starting point for p8, not a settled spec.</p>
+  <p class="flag">Body, screen and Dynamic Island are measured off the iPhone 17 Pro Figma frame: 402×874pt at r56, 8pt bezel, 112×32pt island 13pt down. The 59/34pt safe areas and the iOS 26 floating tab bar are still from memory. Check those two against Xcode before building to them.</p>
+
+  <section class="screen">
+    <h2>Library <span class="est">/library</span></h2>
+    <p class="row-sum">From KeptLibrary.tsx · 96pt large title · 83pt tab bar</p>
+    <ol class="annos">
+      <li><span class="anno-n">1</span><span>Large title nav bar: 96pt total (44pt bar + 52pt title area), 34pt bold title on a 16pt margin. Collapses to the 44pt inline bar on scroll — that transition is free on iOS and is most of why the screen feels native.</span></li>
+      <li><span class="anno-n">2</span><span>Search is a UISearchController in the nav bar, 36pt tall, revealed by pull-down rather than always on screen. The web puts it inline; do not port that.</span></li>
+      <li><span class="anno-n">3</span><span>Collection grid, KeptFigureGrid on web. 3 across inside 16pt margins with 2pt gutters gives 122pt cells at this width.</span></li>
+      <li><span class="anno-n">4</span><span>New collection goes in the nav bar trailing slot as a +, opening a sheet. The web dialog does not translate.</span></li>
+      <li><span class="anno-n">5</span><span>Tab bar is 49pt above a 34pt home indicator inset, 83pt total. On iOS 26 this is the floating Liquid Glass bar that contracts on scroll, not a flush bar — worth confirming against the current HIG before building.</span></li>
+    </ol>
+  </section>
+
+  <section class="screen">
+    <h2>Collection <span class="est">/library/:collectionId</span></h2>
+    <p class="row-sum">From KeptCollection.tsx · 44pt inline nav · 83pt tab bar</p>
+    <ol class="annos">
+      <li><span class="anno-n">1</span><span>Inline 44pt nav bar with a back chevron and the parent title. Web draws KeptCrumbs breadcrumbs; iOS gets the native back plus the edge-swipe, so the breadcrumb row is dropped.</span></li>
+      <li><span class="anno-n">2</span><span>Description sits under the title. It is editable in place on web — on iOS that wants an explicit Edit affordance rather than a focusable paragraph.</span></li>
+      <li><span class="anno-n">3</span><span>The grid uses the thumb/ 480px copies, which is what oklab-squares just generated.</span></li>
+      <li><span class="anno-n">4</span><span>Tapping a cell should be a zoom transition from the tapped cell, not a push. That is the shot at making it feel better than the web.</span></li>
+    </ol>
+  </section>
+
+  <section class="screen">
+    <h2>Reference <span class="est">/library/:collectionId/:referenceId</span></h2>
+    <p class="row-sum">From KeptReference.tsx · 44pt inline nav · 83pt tab bar</p>
+    <ol class="annos">
+      <li><span class="anno-n">1</span><span>The full/ 1200px image, edge to edge at 402pt wide rather than inside the 16pt margin. Pinch to zoom.</span></li>
+      <li><span class="anno-n">2</span><span>Pins are a coordinate overlay on the image (KeptPin), not a control in a layout. This is the single hardest thing on the list to port and it does not get easier by waiting.</span></li>
+      <li><span class="anno-n">3</span><span>Horizontal swipe steps between references. Web uses the keyboard and a KeptPager — the pager row disappears on iOS.</span></li>
+      <li><span class="anno-n">4</span><span>Caption and notes below the fold: “What is worth remembering about this one?”</span></li>
+      <li><span class="anno-n">5</span><span>Tags as 44pt-tap-target chips.</span></li>
+      <li><span class="anno-n">6</span><span>483 lines on web, the largest screen. Most likely candidate for splitting — image and metadata may want to be a sheet over the image rather than one scroll.</span></li>
+    </ol>
+  </section>
+
+  <section class="screen">
+    <h2>Capture <span class="est">— (new)</span></h2>
+    <p class="row-sum">No real web equivalent · no nav bar · 83pt tab bar</p>
+    <ol class="annos">
+      <li><span class="anno-n">1</span><span>Full-bleed under the status bar, no nav bar. The only screen that ignores the top safe area for content while keeping controls clear of the 59pt inset.</span></li>
+      <li><span class="anno-n">2</span><span>KeptUpload is a drag-and-drop zone and is not a useful reference. This is PhotoKit plus the camera.</span></li>
+      <li><span class="anno-n">3</span><span>Recents strip, multi-select, sitting above the tab bar.</span></li>
+      <li><span class="anno-n">4</span><span>Needs a destination step — which collection it lands in — probably a sheet after selection rather than a screen before it.</span></li>
+      <li><span class="anno-n">5</span><span>The share extension matters more than this screen: capture from Safari or Photos without opening Kept. That is a separate target in Xcode and should be scoped as its own issue.</span></li>
+    </ol>
+  </section>
+
+  <section class="screen">
+    <h2>Sign in <span class="est">/login</span></h2>
+    <p class="row-sum">From KeptLogin.tsx · no nav bar · no tab bar</p>
+    <ol class="annos">
+      <li><span class="anno-n">1</span><span>No nav bar, content centred in the safe area. Keyboard avoidance is the whole game here — the 34pt bottom inset is under the keyboard once it is up.</span></li>
+      <li><span class="anno-n">2</span><span>Username and password as boxed 44pt fields, matching the web change in a7f71f9.</span></li>
+      <li><span class="anno-n">3</span><span>Two-factor is a separate push at /login/mfa, not a step inside this screen.</span></li>
+      <li><span class="anno-n">4</span><span>Sign in with Apple: if the app offers any third-party sign-in, App Review requires this. It does not exist on web and is an open decision, not a detail.</span></li>
+    </ol>
+  </section>
+
+  <section class="screen">
+    <h2>Request an invite <span class="est">/request</span></h2>
+    <p class="row-sum">From KeptRequest.tsx · 44pt inline nav · no tab bar</p>
+    <ol class="annos">
+      <li><span class="anno-n">1</span><span>Presented as a sheet from Sign in, so the nav bar carries a Cancel rather than a back chevron.</span></li>
+      <li><span class="anno-n">2</span><span>Name, email, and an optional “what for” — “Type specimens, packaging, a moodboard for a brand…”.</span></li>
+      <li><span class="anno-n">3</span><span>The app is invite-only, so App Review needs a working demo account in the review notes. That has sunk submissions before and belongs in p11.</span></li>
+    </ol>
+  </section>
+
+  <section class="screen">
+    <h2>Account <span class="est">/account</span></h2>
+    <p class="row-sum">From KeptAccountPages.tsx · 96pt large title · 83pt tab bar</p>
+    <ol class="annos">
+      <li><span class="anno-n">1</span><span>Grouped inset list, the standard iOS settings shape. Settings and Referral are the two real sections today.</span></li>
+      <li><span class="anno-n">2</span><span>44pt rows with disclosure chevrons.</span></li>
+      <li><span class="anno-n">3</span><span>Theme follows the system. theme.ts writes data-theme on web; on iOS overriding the system appearance needs a reason.</span></li>
+      <li><span class="anno-n">4</span><span>Sign out at the bottom, destructive red, in its own group.</span></li>
+    </ol>
+  </section>
+
+  <section class="screen">
+    <h2>Board <span class="est">/m/:token</span></h2>
+    <p class="row-sum">From KeptBoard.tsx · 96pt large title · no tab bar</p>
+    <ol class="annos">
+      <li><span class="anno-n">1</span><span>The published read-only view. No tab bar — this is opened from a link, not from inside the app.</span></li>
+      <li><span class="anno-n">2</span><span>Must work signed out. The only screen with that requirement, which makes it disproportionately expensive.</span></li>
+      <li><span class="anno-n">3</span><span>Genuinely undecided for v0.0.0: a board is what you send to someone else, so it may stay web-only and the app just produces the link.</span></li>
+      <li><span class="anno-n">4</span><span>moode-matcha has a token in SEED_SHARES; oklab-squares does not.</span></li>
+    </ol>
+  </section>
+</main>
