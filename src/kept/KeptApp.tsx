@@ -12,6 +12,7 @@ import { KeptIos } from './KeptIos.tsx';
 import { KeptMap } from './KeptMap.tsx';
 import { KeptReference } from './KeptReference.tsx';
 import { KeptRequest } from './KeptRequest.tsx';
+import { KeptRoadmap } from './KeptRoadmap.tsx';
 import { KeptTodo } from './KeptTodo.tsx';
 import { ArrowIcon, ArrowLink, Separator } from './parts.tsx';
 import { completeMfaForLab, getSession } from './session.ts';
@@ -26,14 +27,14 @@ type Shell = 'marketing' | 'auth' | 'app' | 'board';
 
 const MARKETING_NAV = [
   { href: '/', label: 'Landing', route: '' },
-  { href: '/library', label: 'Library', route: 'library' },
-  { href: '/map', label: 'Map', route: 'map' },
+  { href: '/roadmap', label: 'Roadmap', route: 'roadmap' },
 ];
 const AUTH_NAV = MARKETING_NAV.slice(0, 1);
 const APP_NAV = [
   { href: '/library', label: 'Library', route: 'library' },
   { href: '/lab', label: 'Lab', route: 'lab' },
   { href: '/map', label: 'Map', route: 'map' },
+  { href: '/ios', label: 'iOS', route: 'ios' },
   { href: '/todo', label: 'To do', route: 'todo' },
 ];
 
@@ -42,6 +43,7 @@ const TITLES: Record<string, string> = {
   login: 'Sign in · KEPT',
   'login/mfa': 'Two-factor · KEPT',
   request: 'Request an invite · KEPT',
+  roadmap: 'Roadmap · KEPT',
   library: 'Library · KEPT',
   lab: 'Lab · KEPT',
   map: 'System map · KEPT',
@@ -56,7 +58,13 @@ const COMING_NEXT: Record<string, string> = {};
 function shellFor(route: string): Shell {
   if (route.startsWith('m/')) return 'board';
   if (route.startsWith('login') || route === 'request') return 'auth';
-  if (route === 'library' || route.startsWith('library/') || route === 'lab') return 'app';
+  if (
+    route === 'library' ||
+    route.startsWith('library/') ||
+    route === 'lab' ||
+    route === 'map' ||
+    route === 'ios'
+  ) return 'app';
   // Account pages, from the menu under your name
   if (route === 'todo' || route === 'settings' || route === 'referral') return 'app';
   return 'marketing';
@@ -104,6 +112,7 @@ export function KeptApp({ route }: { route: string }) {
   else if (route === 'login') content = <KeptLogin />;
   else if (route === 'login/mfa') content = <KeptMfaPlaceholder />;
   else if (route === 'request') content = <KeptRequest />;
+  else if (route === 'roadmap') content = <KeptRoadmap />;
   else if (route === 'library') content = <KeptLibrary />;
   else if (route === 'lab') content = <KeptLab />;
   else if (route === 'map') content = <KeptMap />;

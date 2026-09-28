@@ -16,6 +16,10 @@
     }
   }
 
+  :root[data-kept-route='todo'] .KeptBody {
+    background-color: #d4ff78;
+  }
+
   /* bui-d-g bui-gtc-8 bui-g-8 bp2:bui-g-9, max 1480px */
   .KeptGrid {
     display: grid;
