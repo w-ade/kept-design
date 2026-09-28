@@ -163,7 +163,7 @@ export function KeptTodo() {
         tasks={LATER}
         done={saved.done}
         onToggle={toggle}
-        meta="Grow the system."
+        meta="Expand the system."
         muted
       />
 
