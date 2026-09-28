@@ -25,6 +25,14 @@
       "target": "Real accounts"
     },
     {
+      "id": "p8",
+      "name": "iOS foundation",
+      "order": 2,
+      "short": "iOS base",
+      "summary": "The native app exists and can be run on your phone: framework, tokens, navigation, and the motion primitives everything else is built on. No backend dependency, so it runs alongside p1.",
+      "target": "A shell that feels right"
+    },
+    {
       "id": "p3",
       "name": "Library data",
       "order": 3,
@@ -49,19 +57,43 @@
       "target": "Requests reach you"
     },
     {
+      "id": "p9",
+      "name": "iOS library",
+      "order": 5,
+      "short": "iOS library",
+      "summary": "The screens that matter on a phone: collections, the reference grid, the viewer, pins, notes. Built against the contract on mocks, then wired to real data once p3 lands.",
+      "target": "Browsing that feels native"
+    },
+    {
+      "id": "p10",
+      "name": "iOS capture",
+      "order": 8,
+      "short": "iOS capture",
+      "summary": "The reason the app exists: camera, photo library, and Share → Kept from Safari, Photos or Instagram, with an upload queue that survives losing signal.",
+      "target": "Capture from anywhere"
+    },
+    {
       "id": "p6",
-      "name": "Move in and ship",
-      "order": 6,
-      "short": "Ship",
-      "summary": "Seed moode-matcha into Storage, set env and secrets, re-verify pixel parity and RLS, deploy.",
+      "name": "Web v0 ship",
+      "order": 9,
+      "short": "Web ship",
+      "summary": "Seed moode-matcha into Storage, set env and secrets, re-verify pixel parity and RLS, deploy the web app.",
       "target": "kept.design"
+    },
+    {
+      "id": "p11",
+      "name": "iOS ship",
+      "order": 10,
+      "short": "iOS ship",
+      "summary": "Universal Links, the App Store requirements that are not optional (account deletion, privacy manifest, minimum functionality), then TestFlight and review.",
+      "target": "On the App Store"
     },
     {
       "id": "p7",
       "name": "Later",
-      "order": 7,
+      "order": 11,
       "short": "Later",
-      "summary": "Worth doing, not needed for v0: box annotations, renaming, server search, share previews.",
+      "summary": "Worth doing, not needed for v0: box annotations, renaming, server search, share previews, and the bigger platform bets (iPad, widgets, Android, a SwiftUI rewrite if the feel ceiling is ever hit).",
       "target": "After v0"
     }
   ],
@@ -175,6 +207,126 @@
       "question": "PR #3 already committed the 320 moode-matcha files to main (the repo is public). Once they're in Storage, the copies in `public/collections/` aren't needed.",
       "recommended": "remove",
       "title": "Collection images in git"
+    },
+    {
+      "chosen": "react-native",
+      "id": "d6",
+      "key": "D-6",
+      "options": [
+        {
+          "detail": "Real native views. Reanimated runs animations on the UI thread, so gestures track 1:1 and stay interruptible. Keeps React and TypeScript, so the mental model and the data contract carry over. Base UI does not, so the 16 screens are rebuilt. This is what apps like Phantom use.",
+          "id": "react-native",
+          "label": "React Native"
+        },
+        {
+          "detail": "The highest ceiling and the most Apple-native feel, at the cost of a new language and paradigm, and the furthest distance from everything already built.",
+          "id": "swiftui",
+          "label": "Native SwiftUI"
+        },
+        {
+          "detail": "The original `/ios` plan: the Vite build inside a WKWebView. By far the cheapest, and keeps one codebase. Rejected: a web view cannot hold 120fps on a 300-image grid or give interruptible gesture physics, and Kept is exactly that kind of app.",
+          "id": "capacitor",
+          "label": "Capacitor wrapper"
+        }
+      ],
+      "order": 6,
+      "question": "The UI rebuild happens once. Capacitor was the original plan, chosen to avoid rebuilding the UI; the goal has since changed to an app that feels genuinely native in the hand, which a web view cannot deliver for an image-heavy, gesture-heavy app.",
+      "recommended": "react-native",
+      "title": "How the iOS app is built"
+    },
+    {
+      "chosen": null,
+      "id": "d7",
+      "key": "D-7",
+      "options": [
+        {
+          "detail": "Closes the question. Matches the domain, the repo and everything already written.",
+          "id": "kept",
+          "label": "Stay Kept — `design.kept.app`"
+        },
+        {
+          "detail": "If the name is going to change, this is the cheapest moment in the project's life to do it. Blocks KEPT-40 until it lands.",
+          "id": "rename-now",
+          "label": "Rename before the Xcode project"
+        },
+        {
+          "detail": "Build on a scratch identifier and replace it before the first external build. Buys time; costs a pass over Universal Links, App Groups and the App Store Connect record.",
+          "id": "placeholder",
+          "label": "Throwaway id now, decide before TestFlight"
+        }
+      ],
+      "order": 7,
+      "question": "A bundle identifier is permanent once an app is public: a new one is a new app, with new reviews and no upgrade path for anyone who installed the old one. The display name can change; the identifier cannot. Today this costs nothing to settle.",
+      "recommended": null,
+      "title": "The app name and bundle identifier"
+    },
+    {
+      "chosen": "expo",
+      "id": "d8",
+      "key": "D-8",
+      "options": [
+        {
+          "detail": "Config plugins generate the native project, so custom native code (share extension, App Groups, associated domains) still works. EAS handles signing and TestFlight uploads. Much less Xcode time.",
+          "id": "expo",
+          "label": "Expo with a development build"
+        },
+        {
+          "detail": "Total control of the Xcode project, and no dependency on Expo's release cadence. More setup, more signing work, and every native change is done by hand.",
+          "id": "bare",
+          "label": "Bare React Native"
+        }
+      ],
+      "order": 8,
+      "question": "React Native can be set up bare or through Expo. The share extension and App Groups both need custom native code, which used to be the reason to avoid Expo and no longer is.",
+      "recommended": null,
+      "title": "Expo or bare React Native"
+    },
+    {
+      "chosen": "tokens-package",
+      "id": "d9",
+      "key": "D-9",
+      "options": [
+        {
+          "detail": "Colors, type scale, spacing and radii move to `tokens.json`, which generates the CSS custom properties for web and a typed object for native. kept-ui stays the source of truth for web layout and design intent; tokens become the source for both.",
+          "id": "tokens-package",
+          "label": "Tokens become the shared layer"
+        },
+        {
+          "detail": "No new tooling. Every token change has to be mirrored into the native app manually, and they will drift.",
+          "id": "kept-ui-first",
+          "label": "kept-ui stays the source, native copies by hand"
+        },
+        {
+          "detail": "Fastest in the short term, and guarantees the two apps stop looking like the same product.",
+          "id": "native-fork",
+          "label": "Let iOS have its own design system"
+        }
+      ],
+      "order": 9,
+      "question": "`tokens.css` is web-only, and Base UI cannot run on iOS. The rule that kept-ui is the single source of truth for the UI was written when there was one renderer, and the rebuild breaks it.",
+      "recommended": null,
+      "title": "Where the design system lives once there are two renderers"
+    },
+    {
+      "chosen": "secure-store",
+      "id": "d10",
+      "key": "D-10",
+      "options": [
+        {
+          "detail": "Refresh tokens live in the iOS keychain, protected by the device passcode and wiped on uninstall. Supabase's auth client takes a custom storage adapter, so this is a small amount of code.",
+          "id": "secure-store",
+          "label": "Keychain via `expo-secure-store`"
+        },
+        {
+          "detail": "The common default in React Native examples. It is an unencrypted file in the app container — acceptable for preferences, not for a refresh token that grants access to the whole library.",
+          "id": "async-storage",
+          "label": "`AsyncStorage`"
+        }
+      ],
+      "order": 10,
+      "question": "The web app keeps its session in `sessionStorage` so a refresh mid-2FA stays on the MFA step. A phone app is expected to stay signed in for months, which makes the storage choice a security decision rather than a convenience one.",
+      "recommended": null,
+      "title": "Where the session lives on the device"
     }
   ],
   "issues": [
@@ -213,7 +365,7 @@
       "labels": [
         "ops"
       ],
-      "notes": "An automated merge was blocked by the permission check last session, so this needs your go-ahead or a merge on GitHub. Merged 2026-09-19 as 4248833; Vercel deploy succeeded and kept.design serves the new UI.",
+      "notes": "Merged 2026-09-19 as 4248833; Vercel deploy succeeded and kept.design serves the new UI.",
       "priority": 1,
       "project": "p0",
       "status": "done",
@@ -223,7 +375,8 @@
         "Build, then check the Vercel preview renders `/`, `/library`, and `/m/mm7q2x9kfa`."
       ],
       "summary": "The UI work lives on a branch. Main still has PR #3, an older snapshot of the same screens with the legacy home and map pages. Everything else builds on main.",
-      "title": "Merge PR #4 into main"
+      "title": "Merge PR #4 into main",
+      "updatedAt": "2026-09-19T13:00:00.000Z"
     },
     {
       "acceptance": [
@@ -525,7 +678,7 @@
         "kept-ui first",
         "ui"
       ],
-      "notes": "This is the one issue that touches kept-ui. It's lab work done with your approval, like the other screens, not a change pushed from kept-design.",
+      "notes": "This is the one issue that touches kept-ui. It's lab work done with your approval, like the other screens, not a change pushed from kept-design. Since D-6, there are two renderers: kept-ui remains the source for the web screen, and the native two-factor screen is designed separately under KEPT-42's information architecture. The seam functions (`getMfaStatus`, `startTotpEnrollment`, `verifyTotp`) are shared by both.",
       "priority": 1,
       "project": "p2",
       "status": "backlog",
@@ -536,7 +689,8 @@
         "Approve it in the lab, then `npm run sync-kept-ui`."
       ],
       "summary": "`/login/mfa` is a placeholder in both projects. kept-ui is the source of truth, so the real screen is designed and approved there (with a mock) before kept-design wires it.",
-      "title": "Design the two-factor screen in kept-ui"
+      "title": "Design the two-factor screen in kept-ui",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
     },
     {
       "acceptance": [
@@ -949,7 +1103,8 @@
         "Log a health run (`health/log.csv`) for the release."
       ],
       "summary": "Real data mustn't change how anything looks, and the security model needs proof, not assumption.",
-      "title": "Verify: pixel parity, end-to-end and RLS"
+      "title": "Verify the web app: pixel parity, end-to-end and RLS",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
     },
     {
       "acceptance": [
@@ -974,7 +1129,8 @@
         "Tick “Ship to kept.design” in Kept's own To do page."
       ],
       "summary": "The finish line for v0.",
-      "title": "Ship to kept.design"
+      "title": "Ship the web app to kept.design",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
     },
     {
       "acceptance": [],
@@ -1054,6 +1210,985 @@
       "steps": [],
       "summary": "Out of scope for v0 by design. Revisit only if egress or storage costs become real.",
       "title": "Move images to R2 if Storage costs bite"
+    },
+    {
+      "acceptance": [
+        "D-6 has a chosen option and a recorded reason",
+        "`/ios` describes the current plan and contains no stale claims",
+        "AGENTS.md says which source of truth applies to which renderer"
+      ],
+      "blockedBy": [],
+      "estimate": 1,
+      "key": "KEPT-37",
+      "labels": [
+        "decision",
+        "ios"
+      ],
+      "notes": "Nothing in the backend roadmap (p1–p6) is affected by this decision. Schema, RLS, Storage, Auth and both Edge Functions serve a native client exactly as they serve the browser.",
+      "priority": 1,
+      "project": "p8",
+      "status": "todo",
+      "steps": [
+        "Record the call in D-6 with the reasoning, not just the choice.",
+        "Rewrite `src/kept/KeptIos.tsx` so `/ios` describes the real plan. Four things in it are already wrong: it says hash routes work unchanged (kept-design uses real paths), it says `pnpm` (this repo is npm), it points at `kept-ui.vercel.app` as \"today\", and it hardcodes a LAN IP in a public repo.",
+        "Rewrite the AGENTS.md rule that kept-ui is the single source of truth for the UI: true for web, false once a second renderer exists.",
+        "Write down the condition that would reopen D-6, so it is a test rather than a mood: KEPT-44 failing its frame budget on device."
+      ],
+      "summary": "The `/ios` page in the app still describes a Capacitor wrapper, chosen when the goal was \"don't rebuild the UI\". The goal is now an app that feels native in the hand, which points somewhere else (D-6). The old plan has to be retired in writing or it will keep resurfacing.",
+      "title": "Confirm the native framework and retire the Capacitor plan",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "D-7 has a chosen option",
+        "The identifier is recorded once and referenced everywhere else",
+        "The name is reserved in App Store Connect"
+      ],
+      "blockedBy": [],
+      "estimate": 1,
+      "key": "KEPT-38",
+      "labels": [
+        "decision",
+        "ios",
+        "ops"
+      ],
+      "notes": "The App Store display name can be changed later. The bundle identifier and the App Group identifier cannot, in practice.",
+      "priority": 1,
+      "project": "p8",
+      "status": "todo",
+      "steps": [
+        "Settle D-7.",
+        "Pick the reverse-DNS identifier (`design.kept.app` if the name stands) and write it down in exactly one place that the Xcode project, the App Group, the associated domain and App Store Connect all read from.",
+        "Reserve the name in App Store Connect once KEPT-39 is done — reservation is first-come and free."
+      ],
+      "summary": "A bundle identifier is permanent once the app is public. Changing it after release means a new App Store listing, new reviews, and no upgrade path for anyone who already installed it. The name question has been open and low-priority; for iOS it stops being low-priority at KEPT-40.",
+      "title": "Settle the app name and bundle identifier",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Membership is active",
+        "App Store Connect has the app record with the agreed bundle identifier"
+      ],
+      "blockedBy": [
+        "KEPT-38"
+      ],
+      "estimate": 1,
+      "key": "KEPT-39",
+      "labels": [
+        "ios",
+        "ops"
+      ],
+      "notes": "Enrolling as an individual publishes your legal name as the seller. If that matters, sort out the entity before enrolling rather than after.",
+      "priority": 2,
+      "project": "p8",
+      "status": "backlog",
+      "steps": [
+        "Enroll. Individual or company changes the seller name shown publicly on the App Store; switching afterwards is a support process, not a settings toggle.",
+        "Two-factor on the Apple ID is mandatory for App Store Connect.",
+        "Create the app record in App Store Connect and reserve the name from KEPT-38."
+      ],
+      "summary": "$99 a year. Required for TestFlight, the App Store, Universal Links, App Groups and push. A free Apple ID can only sideload to your own device, and the install expires after seven days — enough to prove KEPT-44, not enough to live with the app.",
+      "title": "Join the Apple Developer Program",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "A development build runs on your iPhone over the cable",
+        "A test animation measurably runs above 60fps on device",
+        "The bundle identifier matches KEPT-38 everywhere it appears"
+      ],
+      "blockedBy": [
+        "KEPT-37",
+        "KEPT-38"
+      ],
+      "code": "app.config.ts\n  ios.bundleIdentifier   design.kept.app          (D-7)\n  ios.infoPlist          CADisableMinimumFrameDurationOnPhone: true\n  ios.supportsTablet     false                    (iPad is a later bet)\n  plugins                expo-dev-client, expo-font, expo-image,\n                         expo-secure-store, expo-image-picker",
+      "estimate": 3,
+      "key": "KEPT-40",
+      "labels": [
+        "ios",
+        "native"
+      ],
+      "priority": 1,
+      "project": "p8",
+      "status": "backlog",
+      "steps": [
+        "`npx create-expo-app` with the TypeScript template; add `expo-dev-client` so custom native code is possible from day one.",
+        "Set the bundle identifier from KEPT-38 in `app.config.ts`.",
+        "Set `CADisableMinimumFrameDurationOnPhone` to `YES` in Info.plist. Without it iOS caps the app at 60fps on ProMotion devices and every animation silently loses half its frames.",
+        "EAS build profiles: `development` (dev client on device), `preview` (internal distribution), `production` (TestFlight and App Store).",
+        "Decide repo layout: a sibling repo, or a folder in a monorepo alongside the web app. The only thing that genuinely needs sharing is tokens (KEPT-41) and the data contract (KEPT-45)."
+      ],
+      "summary": "The project itself: Expo with a development build (D-8), TypeScript strict, the agreed bundle identifier, and the one Info.plist flag without which the app is capped at 60fps on a 120Hz phone.",
+      "title": "Create the React Native app",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Changing one value in `tokens.json` changes both apps",
+        "The web app is pixel-identical before and after the extraction",
+        "Native screens reference tokens, never literals"
+      ],
+      "blockedBy": [],
+      "estimate": 3,
+      "key": "KEPT-41",
+      "labels": [
+        "ui",
+        "ios",
+        "data"
+      ],
+      "notes": "This is the concrete moment kept-ui stops being the single source of truth for the UI. It stays the source for web layout and design intent; tokens become the shared layer beneath both.",
+      "priority": 1,
+      "project": "p8",
+      "status": "backlog",
+      "steps": [
+        "Extract `src/kept/tokens.css` into `tokens.json`: colour (light and dark), spacing scale, radii, type scale, weights, and the motion constants from KEPT-44.",
+        "A generator emits CSS custom properties for the web app and a typed TS object for native.",
+        "The web app keeps importing the generated CSS, so nothing changes visually and the pixel sweep still passes.",
+        "Lint rule or review habit: no raw hex, no magic spacing numbers in native screen code."
+      ],
+      "summary": "`tokens.css` is web-only, so today there is no way for the two apps to agree on a colour. Implements D-9: one source of truth that generates both.",
+      "title": "Design tokens as shared data",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Every web route has a native counterpart or a written \"not on phone\"",
+        "The navigation shape is approved before any library screen is built"
+      ],
+      "blockedBy": [],
+      "estimate": 3,
+      "key": "KEPT-42",
+      "labels": [
+        "ios",
+        "ui",
+        "kept-ui first"
+      ],
+      "notes": "Kept's job on a phone is capture and browse. The long tail of account screens can be thin or absent without hurting the product.",
+      "priority": 1,
+      "project": "p8",
+      "status": "backlog",
+      "steps": [
+        "Decide the root: a tab bar (Library · Search · Add · You) or a single stack with a prominent capture action.",
+        "Map each of the 16 web routes to a native screen, a sheet, or explicitly nothing. `/map`, `/ios`, `/todo` and `/referral` are almost certainly nothing.",
+        "Decide what a modal sheet is and what is a pushed screen — a rule, applied consistently, not a per-screen judgement call.",
+        "Design it before building it. Whether that is kept-ui, Figma or paper matters less than it being approved before KEPT-46 starts."
+      ],
+      "summary": "The web app is a three-pane desktop layout across 16 routes. A phone is not a small desktop: the screens have to be re-planned, not ported. Getting this wrong is expensive because every later screen sits inside it.",
+      "title": "Native information architecture",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Light and dark match the web tokens side by side",
+        "Nothing is obscured by the notch or the home indicator on a modern iPhone",
+        "Text at the largest accessibility size is still usable"
+      ],
+      "blockedBy": [],
+      "estimate": 2,
+      "key": "KEPT-43",
+      "labels": [
+        "ui",
+        "ios"
+      ],
+      "priority": 2,
+      "project": "p8",
+      "status": "backlog",
+      "steps": [
+        "Load Geist and Geist Mono with `expo-font`; fall back to the system face while they load rather than flashing.",
+        "Light and dark from `useColorScheme`, reading the same tokens as the web (KEPT-41).",
+        "Safe areas with `react-native-safe-area-context` — the notch, the home indicator, and the keyboard.",
+        "Decide the Dynamic Type position: full support, or a capped scale. Accessibility text sizes will break a dense image grid if ignored entirely."
+      ],
+      "summary": "The chrome that makes a native app feel like it belongs to the same product as the website.",
+      "title": "Type, fonts, dark mode and safe areas",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "A scroll of 300 images holds 120fps on device",
+        "A sheet can be caught mid-animation and reversed without snapping",
+        "Nothing animates through React state"
+      ],
+      "blockedBy": [],
+      "estimate": 5,
+      "key": "KEPT-44",
+      "labels": [
+        "ios",
+        "motion",
+        "native"
+      ],
+      "notes": "If this issue cannot hit its frame budget, D-6 gets reopened here — before sixteen screens are built on top of it, not after.",
+      "priority": 1,
+      "project": "p8",
+      "status": "backlog",
+      "steps": [
+        "`react-native-reanimated` and `react-native-gesture-handler`. Every animation runs on the UI thread from a shared value — never driven by React state, which puts it back on the JS thread and back at the mercy of a render.",
+        "One shared spring configuration in tokens, so every surface in the app decelerates the same way.",
+        "The rule, written down: every animation is interruptible. Anything you can start with a gesture, you can catch mid-flight and reverse.",
+        "Velocity carries from the gesture into the animation. A flung sheet keeps the speed of the finger that threw it.",
+        "Build a throwaway test screen: 300 images, fast scroll, a pinch, a drag-dismiss. Profile it on a real device, not the simulator.",
+        "Load the `apple-design` and `gesture-ui` guidance before setting the spring values, rather than guessing at numbers."
+      ],
+      "summary": "The whole reason for rebuilding instead of wrapping. These primitives get set once, before any screen depends on them, and they are also the test of whether the framework choice was right.",
+      "title": "Motion and gesture foundations",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Native screens compile against the same types the web app uses",
+        "Every p9 screen runs on mocks with no backend",
+        "Swapping mocks for Supabase touches one module"
+      ],
+      "blockedBy": [],
+      "estimate": 3,
+      "key": "KEPT-45",
+      "labels": [
+        "data",
+        "ios"
+      ],
+      "notes": "Depends on KEPT-11 only for the generated types. Everything else here can start immediately.",
+      "priority": 1,
+      "project": "p8",
+      "status": "backlog",
+      "steps": [
+        "Same function names and return shapes as the web: `listCollections`, `getCollection`, `listReferences`, `updateReference`, `addUploads`, `getSession`, `signInWithPassword`.",
+        "Share the generated database types from KEPT-11 rather than redeclaring them; a drift here should fail a typecheck, not surface as a bug.",
+        "`supabase-js` in React Native needs `react-native-url-polyfill` and a storage adapter for auth — the keychain one from D-10.",
+        "Port the mock repository so every screen in p9 can be built and demoed before p3 lands."
+      ],
+      "summary": "The seam is the most valuable thing in the web repo: screens call `repository.ts` and `session.ts`, and swapping mocks for Supabase touches no screen. The native app gets the same seam, so its screens can be built on mocks while the backend is still being built.",
+      "title": "The data contract on native",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Matches the approved KEPT-42 design",
+        "Runs entirely on mocks",
+        "Cold open to interactive in under a second on device"
+      ],
+      "blockedBy": [
+        "KEPT-42",
+        "KEPT-44",
+        "KEPT-45"
+      ],
+      "estimate": 3,
+      "key": "KEPT-46",
+      "labels": [
+        "ios",
+        "ui"
+      ],
+      "priority": 2,
+      "project": "p9",
+      "status": "backlog",
+      "steps": [
+        "Collection list or grid with cover images and counts.",
+        "Pull to refresh; empty state; skeletons that match the token type scale rather than generic grey bars.",
+        "Create a collection from here, as a sheet.",
+        "Open transition into a collection uses the shared spring, not a stock push."
+      ],
+      "summary": "The root screen: your collections, and a way into All references. The first screen built on the KEPT-42 navigation and the KEPT-44 primitives, so it is also where both get proven.",
+      "title": "Collections home",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "300+ references scroll at 120fps on device with no blank tiles",
+        "Memory stays flat over a long scroll; the app is not jetsammed",
+        "A cold open with a warm disk cache shows images without a flash"
+      ],
+      "blockedBy": [
+        "KEPT-44",
+        "KEPT-46"
+      ],
+      "estimate": 8,
+      "key": "KEPT-47",
+      "labels": [
+        "ios",
+        "ui",
+        "motion"
+      ],
+      "notes": "This is the issue that proves or disproves the whole rebuild. Worth profiling on the oldest phone you intend to support, not just yours.",
+      "priority": 1,
+      "project": "p9",
+      "status": "backlog",
+      "steps": [
+        "`@shopify/flash-list` for recycling. A plain list keeps every row mounted and will not survive a real library.",
+        "`expo-image` for decode and caching — it is backed by SDWebImage on iOS and handles memory and disk caching properly.",
+        "Thumbnails in the grid (480px), never the full image. The full 1600px asset is only ever loaded by the viewer.",
+        "Prefetch ahead of the scroll direction; cancel prefetches that scroll past.",
+        "Set an explicit memory ceiling for the image cache and test against the largest collection, not a demo one.",
+        "Fixed aspect tiles or a measured masonry layout — decide before building, since masonry with recycling is materially harder."
+      ],
+      "summary": "The screen Kept lives or dies on, and the one a web view could never do properly: hundreds of images, scrolled fast, at 120fps, without the app being killed for memory. moode-matcha alone is 320 files.",
+      "title": "The reference grid",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Pinch tracks the fingers with no perceptible lag",
+        "A dismiss can be reversed mid-flight",
+        "The image lands exactly on its grid tile when it returns",
+        "Holds 120fps throughout on device"
+      ],
+      "blockedBy": [
+        "KEPT-47"
+      ],
+      "estimate": 8,
+      "key": "KEPT-48",
+      "labels": [
+        "ios",
+        "motion"
+      ],
+      "notes": "Load the `apple-design` and `gesture-ui` guidance before building this one. It is the issue most worth over-investing in.",
+      "priority": 1,
+      "project": "p9",
+      "status": "backlog",
+      "steps": [
+        "Shared-element transition from the grid tile into the viewer: the tile becomes the image, it does not cross-fade.",
+        "Pinch to zoom with two-finger pan, tracking the fingers exactly, with rubber-banding past the bounds and a spring back.",
+        "Drag down to dismiss, with the background dimming in proportion to the drag and the image returning to its tile if released early.",
+        "Velocity decides the outcome: a fast flick dismisses even from a short distance.",
+        "Every part of it interruptible — you can catch a dismissing image and drag it back."
+      ],
+      "summary": "Opening a reference is the most-repeated gesture in the app. It is also the clearest single signal of whether an app feels native, because everyone has Photos.app as a reference point.",
+      "title": "Reference viewer: pinch, pan and drag to dismiss",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Swiping through twenty references never shows a loading state",
+        "Dismissing lands on the correct tile after paging",
+        "Zoomed panning never accidentally pages"
+      ],
+      "blockedBy": [
+        "KEPT-48"
+      ],
+      "estimate": 5,
+      "key": "KEPT-49",
+      "labels": [
+        "ios",
+        "motion"
+      ],
+      "priority": 2,
+      "project": "p9",
+      "status": "backlog",
+      "steps": [
+        "Horizontal paging within the viewer, sharing the zoom state machine from KEPT-48 so a zoomed image pans instead of paging.",
+        "Preload the neighbours on both sides; release images more than two away.",
+        "Keep the grid's scroll position in sync, so dismissing returns you to the reference you ended on rather than the one you started from."
+      ],
+      "summary": "Once a reference is open, moving to the next one should be a flick, not a trip back to the grid.",
+      "title": "Swipe between references",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "A pin can be placed accurately at the top and bottom edges of the image",
+        "Pin positions match the web app exactly for the same reference",
+        "Captions are readable and editable with the keyboard up"
+      ],
+      "blockedBy": [
+        "KEPT-48"
+      ],
+      "estimate": 5,
+      "key": "KEPT-50",
+      "labels": [
+        "ios",
+        "ui"
+      ],
+      "priority": 2,
+      "project": "p9",
+      "status": "backlog",
+      "steps": [
+        "Long-press to place, drag to position, with the pin offset above the finger so it is not hidden by it.",
+        "A magnifier or offset preview while dragging, since the finger covers the target.",
+        "Caption entry as a sheet, with the keyboard handled so the pin stays visible.",
+        "Haptic on placement and on hitting a snap threshold, not on every frame of the drag.",
+        "Pins live in image coordinates, not screen coordinates, so they survive zoom and rotation."
+      ],
+      "summary": "Pins are what make a reference a reference rather than a photo. Placing one on a phone is a different interaction from placing one with a mouse.",
+      "title": "Pins on native",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "The caret is never hidden behind the keyboard",
+        "Dismissing the sheet mid-edit does not lose the edit",
+        "Tags created on the phone appear on the web and the reverse"
+      ],
+      "blockedBy": [
+        "KEPT-46"
+      ],
+      "estimate": 3,
+      "key": "KEPT-51",
+      "labels": [
+        "ios",
+        "ui"
+      ],
+      "priority": 2,
+      "project": "p9",
+      "status": "backlog",
+      "steps": [
+        "Notes as a sheet with the keyboard pushing content rather than covering it.",
+        "Tag entry with autocomplete from existing tags; creating a tag is the same gesture as picking one.",
+        "Save on dismiss, not with an explicit Save button; show that it saved without a modal.",
+        "Same field-level errors and copy as the web app."
+      ],
+      "summary": "The editing surfaces. Mostly unremarkable, except that keyboard handling on iOS is where otherwise-good apps fall apart.",
+      "title": "Notes, tags and titles",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Search over a 500-reference library stays responsive while typing",
+        "Results match the web app for the same query"
+      ],
+      "blockedBy": [
+        "KEPT-47"
+      ],
+      "estimate": 3,
+      "key": "KEPT-52",
+      "labels": [
+        "ios",
+        "ui"
+      ],
+      "priority": 3,
+      "project": "p9",
+      "status": "backlog",
+      "steps": [
+        "Filter across titles, notes, tags and pin captions — the same fields the web filters.",
+        "Debounced, running off the main thread if the library is large.",
+        "Recent searches; an empty state that offers something rather than shrugging."
+      ],
+      "summary": "Matches the web app's v0 position (KEPT-22): filter what is already loaded rather than build server search. Revisit with KEPT-34 when either client outgrows it.",
+      "title": "Search on device",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "120fps held across the main flows on device",
+        "Reduce Motion produces a calm app, not a broken one",
+        "No default-looking transitions remain"
+      ],
+      "blockedBy": [
+        "KEPT-48",
+        "KEPT-50"
+      ],
+      "estimate": 5,
+      "key": "KEPT-53",
+      "labels": [
+        "ios",
+        "motion"
+      ],
+      "notes": "This is the issue that the whole rebuild was justified by. If it gets cut for time, the rebuild was not worth doing.",
+      "priority": 1,
+      "project": "p9",
+      "status": "backlog",
+      "steps": [
+        "Haptics bound to gesture thresholds and state changes, never to taps for their own sake. A haptic that fires on everything stops meaning anything.",
+        "Audit every transition for interruptibility; anything that cannot be caught mid-flight gets rebuilt.",
+        "Remove every stock animation that was left at its default while building.",
+        "Check the whole app under Reduce Motion: every spring becomes a fade, nothing becomes a jump.",
+        "Profile on device, holding 120fps through the grid, the viewer and every sheet.",
+        "Hand the app to someone who has not seen it and watch where their thumb hesitates."
+      ],
+      "summary": "A dedicated pass over the whole app for the things that separate \"works\" from \"feels amazing\". Deliberately its own issue, because polish that is left as a sub-task of every other issue never happens.",
+      "title": "The feel pass",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Airplane mode still shows previously-browsed collections and thumbnails",
+        "Expired signed URLs re-sign without the user noticing",
+        "The cache respects its ceiling over a week of real use"
+      ],
+      "blockedBy": [
+        "KEPT-47"
+      ],
+      "estimate": 5,
+      "key": "KEPT-54",
+      "labels": [
+        "ios",
+        "storage"
+      ],
+      "priority": 2,
+      "project": "p9",
+      "status": "backlog",
+      "steps": [
+        "Disk cache for thumbnails with an explicit size ceiling and an eviction policy.",
+        "Cache collection and reference metadata so the grid renders offline even when images are still arriving.",
+        "Signed Storage URLs expire — cache the image bytes, never the URL, and re-sign on demand.",
+        "An honest offline state: show what is cached, say what is not, never an infinite spinner."
+      ],
+      "summary": "A phone loses signal. A reference library that goes blank on the underground is not a library you trust.",
+      "title": "Image cache and offline reads",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "A collection made on the phone appears on the web without a reload, and the reverse",
+        "The app stays signed in across relaunches and a week of backgrounding",
+        "RLS holds from the native client, tested with a second account"
+      ],
+      "blockedBy": [
+        "KEPT-45",
+        "KEPT-19",
+        "KEPT-21",
+        "KEPT-13"
+      ],
+      "estimate": 5,
+      "key": "KEPT-55",
+      "labels": [
+        "ios",
+        "data"
+      ],
+      "priority": 1,
+      "project": "p9",
+      "status": "backlog",
+      "steps": [
+        "Swap the mock adapter for the Supabase implementation behind the KEPT-45 contract — one module, no screen changes.",
+        "Sign-in through the same `sign-in` Edge Function as the web, then TOTP to reach AAL2.",
+        "Session in the keychain (D-10), with refresh handled on resume so the app is not signed out after a week in the background.",
+        "Verify row-level security from the device: a second account must see nothing of yours."
+      ],
+      "summary": "The moment the phone and the web become one product: the same account, the same collections, the same images, from either device. This is what \"sign into the website and see what I collected on my phone\" actually means.",
+      "title": "Wire the native library to Supabase",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "A photo goes from camera to a collection in two taps",
+        "Limited photo access works without repeated prompting",
+        "Uploads from the phone are byte-comparable to the same file uploaded on the web"
+      ],
+      "blockedBy": [
+        "KEPT-55"
+      ],
+      "estimate": 5,
+      "key": "KEPT-56",
+      "labels": [
+        "ios",
+        "storage"
+      ],
+      "priority": 1,
+      "project": "p10",
+      "status": "backlog",
+      "steps": [
+        "`expo-image-picker` for camera and library, with multi-select from the library.",
+        "Permission strings in Info.plist written in Kept's voice — they are user-facing copy, not boilerplate.",
+        "Use the limited photo library selection properly; do not nag for full access.",
+        "Reuse the existing on-device resize (1600px full, 480px thumb, metadata stripped) so phone uploads match web uploads exactly.",
+        "Strip location metadata. A reference library has no business recording where a photo was taken."
+      ],
+      "summary": "The most obvious thing an app can do that a website cannot: put what is in front of you, or already on your phone, into a collection in two taps.",
+      "title": "Camera and photo library import",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Share → Kept works from Safari, Photos and Instagram",
+        "A shared URL lands as a reference with its capture URL set",
+        "Sharing ten large photos at once does not crash the extension",
+        "The destination collection can be chosen without opening the app"
+      ],
+      "blockedBy": [
+        "KEPT-58",
+        "KEPT-56"
+      ],
+      "estimate": 8,
+      "key": "KEPT-57",
+      "labels": [
+        "ios",
+        "native"
+      ],
+      "notes": "The biggest single piece of native work in the plan, and the one that most changes how Kept is used day to day.",
+      "priority": 1,
+      "project": "p10",
+      "status": "backlog",
+      "steps": [
+        "A share extension target, added through an Expo config plugin (D-8) so it survives a prebuild.",
+        "Accept images, URLs and text. A shared URL becomes a reference with `capture_url` set, matching the web's captured references.",
+        "Pick a destination collection inside the extension, without launching the app.",
+        "Extensions get a hard memory limit — around 120MB — and are killed without ceremony. Hand large images off rather than processing them in the extension.",
+        "The extension UI is small: it must still look like Kept, using the shared tokens."
+      ],
+      "summary": "The single best reason for this app to exist. Share → Kept from Safari, Photos or Instagram is how a visual reference library actually gets filled, and it is also what makes the app more than a website in a wrapper under App Store guideline 4.2.",
+      "title": "Share extension",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "The app picks up items shared while it was closed",
+        "The extension knows the signed-in account",
+        "Nothing accumulates indefinitely in the shared container"
+      ],
+      "blockedBy": [
+        "KEPT-40",
+        "KEPT-55"
+      ],
+      "estimate": 3,
+      "key": "KEPT-58",
+      "labels": [
+        "ios",
+        "native",
+        "infra"
+      ],
+      "priority": 1,
+      "project": "p10",
+      "status": "backlog",
+      "steps": [
+        "Create the App Group identifier alongside the bundle identifier (KEPT-38); like the bundle id, it is painful to change later.",
+        "Shared container for handed-off files; shared defaults for the queue.",
+        "The extension writes to the container and enqueues; the app drains the queue on next launch or resume.",
+        "Share the auth session across the group so the extension knows who is signed in without its own sign-in flow.",
+        "Clean up handed-off files after a successful upload, and on a schedule for ones that failed."
+      ],
+      "summary": "A share extension is a separate process with its own sandbox. An App Group is the only way it can hand files and state to the app.",
+      "title": "App Group handoff",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Twenty photos queued, app backgrounded immediately, all arrive",
+        "Killing the app mid-upload loses nothing; it resumes on next launch",
+        "Airplane mode queues and drains automatically on reconnect",
+        "One corrupt file fails alone, with no orphan rows or objects"
+      ],
+      "blockedBy": [
+        "KEPT-56",
+        "KEPT-21"
+      ],
+      "estimate": 8,
+      "key": "KEPT-59",
+      "labels": [
+        "ios",
+        "storage"
+      ],
+      "priority": 1,
+      "project": "p10",
+      "status": "backlog",
+      "steps": [
+        "A persistent queue that survives app termination — on disk, not in memory.",
+        "Per-item state matching the web's upload dialog: Waiting, Adding…, Added, failed. Same copy, same running count.",
+        "Background upload via `URLSession` background transfers so uploads continue after the app is suspended.",
+        "Retry with backoff; distinguish a failed file from a lost connection and say which.",
+        "One failure never takes down the batch — the web app's rule, kept.",
+        "Show the queue somewhere honest. An upload silently failing is worse than one visibly retrying."
+      ],
+      "summary": "Phone uploads are not desktop uploads: the network drops, the app gets backgrounded, and iOS suspends processes without warning. An upload that only works in the foreground on good wifi is not an upload.",
+      "title": "Upload queue and background uploads",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Sharing a board offers Messages, Mail and the rest",
+        "The shared link is the public kept.design URL"
+      ],
+      "blockedBy": [
+        "KEPT-55",
+        "KEPT-23"
+      ],
+      "estimate": 2,
+      "key": "KEPT-60",
+      "labels": [
+        "ios",
+        "ui"
+      ],
+      "priority": 3,
+      "project": "p10",
+      "status": "backlog",
+      "steps": [
+        "The native share sheet for a published board link.",
+        "Links use `https://kept.design/m/…` (KEPT-25), never a local or preview origin.",
+        "Keep copy-to-clipboard as the secondary action, with the native haptic confirmation."
+      ],
+      "summary": "Publishing a board on the phone should hand you the system share sheet, not a copy-to-clipboard toast borrowed from the web.",
+      "title": "Native share sheet for board links",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "A board link opens the app when installed, the website when not",
+        "Cold start on a link lands on the right board",
+        "The association file validates"
+      ],
+      "blockedBy": [
+        "KEPT-24",
+        "KEPT-31"
+      ],
+      "estimate": 3,
+      "key": "KEPT-61",
+      "labels": [
+        "ios",
+        "infra"
+      ],
+      "priority": 2,
+      "project": "p11",
+      "status": "backlog",
+      "steps": [
+        "Serve `apple-app-site-association` from `https://kept.design/.well-known/`, as JSON, no extension, no redirect, correct content type.",
+        "Associated Domains entitlement (`applinks:kept.design`) in the app.",
+        "Handle `/m/:token` as a cold start, not just while running — the common bug is only handling the warm case.",
+        "Anyone without the app must still get the web board. The link is public and sign-in-free by design.",
+        "Test from Messages and Notes; Safari's address bar deliberately does not trigger Universal Links."
+      ],
+      "summary": "A board link sent to someone who has the app should open the app, not Safari. It is also the thing that makes the two surfaces feel like one product from the outside.",
+      "title": "Universal Links for boards",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "An account can be fully deleted from inside the app",
+        "No orphaned rows or Storage objects survive",
+        "Published board links stop resolving"
+      ],
+      "blockedBy": [],
+      "estimate": 3,
+      "key": "KEPT-62",
+      "labels": [
+        "ios",
+        "security"
+      ],
+      "notes": "Worth building on the web app too. The requirement is Apple's, but the capability is not iOS-specific.",
+      "priority": 1,
+      "project": "p11",
+      "status": "backlog",
+      "steps": [
+        "A delete path in the app that actually deletes: auth user, rows, and every Storage object.",
+        "Confirmation that makes the consequence plain, and is hard to trigger accidentally.",
+        "A server-side function does the deletion; the client must not be trusted to cascade it.",
+        "Published boards die with the account.",
+        "Decide and state the retention position — immediate, or a grace period — and make the copy match what actually happens."
+      ],
+      "summary": "App Store guideline 5.1.1(v): an app that supports account creation must let people delete the account from inside the app. Kept is invite-only and accounts are made by hand, which does not exempt it. This is a common rejection.",
+      "title": "Delete your account, in the app",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "The manifest covers the app and its dependencies",
+        "The privacy answers match what the app actually does",
+        "A privacy policy is live at a permanent URL"
+      ],
+      "blockedBy": [],
+      "estimate": 3,
+      "key": "KEPT-63",
+      "labels": [
+        "ios",
+        "security"
+      ],
+      "priority": 1,
+      "project": "p11",
+      "status": "backlog",
+      "steps": [
+        "`PrivacyInfo.xcprivacy` declaring data types collected and the reasons for any required-reason APIs.",
+        "Check the manifests of every third-party SDK that ships in the binary; they aggregate into yours.",
+        "Answer the App Store Connect privacy questions honestly: user content, identifiers, what is linked to the user, what is used for tracking (nothing).",
+        "A privacy policy at a stable URL on kept.design; the listing requires one.",
+        "If location metadata is stripped at import (KEPT-56), say so — it is a genuine selling point."
+      ],
+      "summary": "Apple requires a privacy manifest and accurate data-collection answers. Getting these wrong is both a rejection risk and a trust problem, since the answers are shown publicly on the listing.",
+      "title": "Privacy manifest and App Store privacy answers",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "The icon reads clearly at the smallest size, in light and dark",
+        "Launch does not flash a mismatched colour",
+        "Screenshots show the real app"
+      ],
+      "blockedBy": [
+        "KEPT-38",
+        "KEPT-53"
+      ],
+      "estimate": 3,
+      "key": "KEPT-64",
+      "labels": [
+        "ios",
+        "ui"
+      ],
+      "priority": 2,
+      "project": "p11",
+      "status": "backlog",
+      "steps": [
+        "App icon at every required size; test it on both light and dark home screens, and at the smallest size it will ever be drawn.",
+        "Launch screen that matches the app's first frame so launch reads as instant rather than as a flash.",
+        "App Store screenshots for the required device sizes, showing real collections rather than lorem ipsum.",
+        "Listing copy: name, subtitle, description, keywords. The subtitle does a lot of work.",
+        "Decide whether the icon reflects the KEPT wordmark or stands apart from it."
+      ],
+      "summary": "The first thing anyone sees, and the last thing anyone leaves time for.",
+      "title": "App icon, launch screen and store assets",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "A written 4.2 argument exists before submission",
+        "Reviewer notes include working credentials and a populated demo account"
+      ],
+      "blockedBy": [
+        "KEPT-57"
+      ],
+      "estimate": 2,
+      "key": "KEPT-65",
+      "labels": [
+        "ios",
+        "app store"
+      ],
+      "notes": "The demo account is the single most common avoidable rejection for invite-only apps. Set it up before you need it.",
+      "priority": 1,
+      "project": "p11",
+      "status": "backlog",
+      "steps": [
+        "Write down the native capabilities the website cannot have: share extension, camera capture, offline library, Universal Links, haptics, background uploads.",
+        "Confirm the app is not merely a mirror of kept.design — the IA from KEPT-42 should already differ.",
+        "Prepare reviewer notes explaining the invite-only model, with a working demo account. Invite-only apps get rejected for being untestable far more often than for anything else.",
+        "Make sure the demo account has real content; an empty library looks broken to a reviewer."
+      ],
+      "summary": "Apple rejects apps that are a website in a wrapper. The rebuild makes this a much easier argument than the Capacitor plan would have, but it is still worth checking deliberately before submitting rather than discovering it in review.",
+      "title": "Guideline 4.2 readiness review",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "A build is installable from TestFlight on a device that has never been cabled to your Mac",
+        "Crashes report with symbols",
+        "At least a handful of testers have used it on a real library"
+      ],
+      "blockedBy": [
+        "KEPT-53",
+        "KEPT-59",
+        "KEPT-62",
+        "KEPT-63",
+        "KEPT-64"
+      ],
+      "estimate": 3,
+      "key": "KEPT-66",
+      "labels": [
+        "ios",
+        "ops"
+      ],
+      "priority": 1,
+      "project": "p11",
+      "status": "backlog",
+      "steps": [
+        "EAS production build uploaded to App Store Connect.",
+        "Internal testers first (up to 100, no review). External testing needs a beta review, which is lighter than App Store review but not instant.",
+        "Builds expire after 90 days — plan the cadence rather than being surprised.",
+        "Set up crash reporting before the first tester, not after the first crash.",
+        "Ask testers for one specific thing: does it feel good in the hand? Everything else is easier to find yourself."
+      ],
+      "summary": "Real devices, real hands, before the App Store. Also the first time the app runs without a cable and a debugger attached.",
+      "title": "TestFlight beta",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "The app is on the App Store",
+        "A phone-only user can be invited, sign in and build a library end to end"
+      ],
+      "blockedBy": [
+        "KEPT-66",
+        "KEPT-65",
+        "KEPT-61"
+      ],
+      "estimate": 3,
+      "key": "KEPT-67",
+      "labels": [
+        "ios",
+        "app store"
+      ],
+      "priority": 1,
+      "project": "p11",
+      "status": "backlog",
+      "steps": [
+        "Final build, listing, screenshots, privacy answers and reviewer notes.",
+        "Age rating, export compliance (the app uses HTTPS, which is the usual answer), content rights.",
+        "Submit, then expect a round of review feedback rather than being surprised by it.",
+        "Plan the release: manual release rather than automatic, so the launch happens when you choose.",
+        "Tick it off in Kept's own To do page."
+      ],
+      "summary": "The finish line for iOS v1.",
+      "title": "App Store submission",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Only opened if a specific, repeated feel problem traces to the framework rather than the implementation"
+      ],
+      "blockedBy": [],
+      "estimate": 8,
+      "key": "KEPT-68",
+      "labels": [
+        "ios",
+        "decision"
+      ],
+      "notes": "Deliberately parked, not rejected. Reopening this without a concrete failing test from KEPT-44 or KEPT-53 is relitigating D-6.",
+      "priority": 0,
+      "project": "p7",
+      "status": "backlog",
+      "steps": [],
+      "summary": "React Native gets very close to native feel and is not native. If KEPT-53 keeps finding things that cannot be fixed from JavaScript, the ceiling is real and this is the escape hatch.",
+      "title": "Revisit SwiftUI if the feel ceiling is hit",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Revisit once the phone app is in real use"
+      ],
+      "blockedBy": [],
+      "estimate": 5,
+      "key": "KEPT-69",
+      "labels": [
+        "ios",
+        "ui"
+      ],
+      "priority": 4,
+      "project": "p7",
+      "status": "backlog",
+      "steps": [],
+      "summary": "A reference library on a larger screen is genuinely compelling — closer to the desktop three-pane layout than the phone is. Out of scope for v1: it is a second IA to design and maintain.",
+      "title": "iPad",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Revisit after the App Store release"
+      ],
+      "blockedBy": [],
+      "estimate": 5,
+      "key": "KEPT-70",
+      "labels": [
+        "ios",
+        "native"
+      ],
+      "priority": 4,
+      "project": "p7",
+      "status": "backlog",
+      "steps": [],
+      "summary": "A widget showing a rotating reference from a collection is an obvious fit for a visual library, and Shortcuts would let Kept be scripted into other capture flows.",
+      "title": "Widgets, Live Activities and Shortcuts",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
+    },
+    {
+      "acceptance": [
+        "Only if someone actually asks"
+      ],
+      "blockedBy": [],
+      "estimate": 8,
+      "key": "KEPT-71",
+      "labels": [
+        "native"
+      ],
+      "notes": "One of the few upsides of React Native over SwiftUI that has no cost until you choose to use it.",
+      "priority": 0,
+      "project": "p7",
+      "status": "backlog",
+      "steps": [],
+      "summary": "React Native makes this cheaper than it would otherwise be, but it is not free: platform-specific IA, its own store process, its own test devices. No demand for it yet.",
+      "title": "Android",
+      "updatedAt": "2026-09-20T00:00:00.000000Z"
     }
   ]
 }

@@ -4,7 +4,7 @@ import { Dialog } from '@base-ui/react/dialog';
 import { Field } from '@base-ui/react/field';
 import { Form } from '@base-ui/react/form';
 import { Input } from '@base-ui/react/input';
-import { ArrowIcon, ImageFill, SearchIcon, Separator, plural } from './parts.tsx';
+import { ArrowIcon, ImageFill, SearchIcon, Separator } from './parts.tsx';
 import {
   createCollection,
   listAllReferences,
@@ -13,6 +13,7 @@ import {
   type Reference,
 } from './repository.ts';
 import { ReferenceBrowser } from './ReferenceBrowser.tsx';
+import { plural } from './utils.ts';
 
 // /library: collections index, the app home. Tiles follow the base-ui.com "Made for the makers" grid;
 // each tile's 2×2 mosaic stands in for the collection's first images.
@@ -147,8 +148,12 @@ function NewCollectionDialog({ onCreated }: { onCreated: (collection: Collection
               className="KeptForm"
               onFormSubmit={async (values) => {
                 setPending(true);
-                const collection = await createCollection(String(values.name));
-                setPending(false);
+                let collection: Collection;
+                try {
+                  collection = await createCollection(String(values.name));
+                } finally {
+                  setPending(false);
+                }
                 onCreated(collection);
                 setOpen(false);
               }}

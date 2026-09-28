@@ -4,7 +4,7 @@
 
 Wire Kept's finished UI (a pixel copy of the kept-ui lab) to Supabase: Postgres, Auth, Storage and two Edge Functions, behind the exact functions the screens already call, so no screen changes.
 
-**Progress:** 2 of 37 issues done.
+**Progress:** 2 of 72 issues done.
 
 ## How it fits together
 
@@ -87,6 +87,44 @@ PR #3 already committed the 320 moode-matcha files to main (the repo is public).
 - **Remove them after the seed** _(recommended)_: Delete `public/collections/` from main once KEPT-28 has moved them into Storage. They stay in git history, but the app stops depending on them.
 - **Keep them in the repo**: Useful for the mock fallback on previews. Costs repo size and keeps the images public.
 
+### D-6 · How the iOS app is built — **Decided: React Native**
+
+The UI rebuild happens once. Capacitor was the original plan, chosen to avoid rebuilding the UI; the goal has since changed to an app that feels genuinely native in the hand, which a web view cannot deliver for an image-heavy, gesture-heavy app.
+
+- **React Native** _(recommended, chosen)_: Real native views. Reanimated runs animations on the UI thread, so gestures track 1:1 and stay interruptible. Keeps React and TypeScript, so the mental model and the data contract carry over. Base UI does not, so the 16 screens are rebuilt. This is what apps like Phantom use.
+- **Native SwiftUI**: The highest ceiling and the most Apple-native feel, at the cost of a new language and paradigm, and the furthest distance from everything already built.
+- **Capacitor wrapper**: The original `/ios` plan: the Vite build inside a WKWebView. By far the cheapest, and keeps one codebase. Rejected: a web view cannot hold 120fps on a 300-image grid or give interruptible gesture physics, and Kept is exactly that kind of app.
+
+### D-7 · The app name and bundle identifier — Open
+
+A bundle identifier is permanent once an app is public: a new one is a new app, with new reviews and no upgrade path for anyone who installed the old one. The display name can change; the identifier cannot. Today this costs nothing to settle.
+
+- **Stay Kept — `design.kept.app`**: Closes the question. Matches the domain, the repo and everything already written.
+- **Rename before the Xcode project**: If the name is going to change, this is the cheapest moment in the project's life to do it. Blocks KEPT-40 until it lands.
+- **Throwaway id now, decide before TestFlight**: Build on a scratch identifier and replace it before the first external build. Buys time; costs a pass over Universal Links, App Groups and the App Store Connect record.
+
+### D-8 · Expo or bare React Native — **Decided: Expo with a development build**
+
+React Native can be set up bare or through Expo. The share extension and App Groups both need custom native code, which used to be the reason to avoid Expo and no longer is.
+
+- **Expo with a development build** _(chosen)_: Config plugins generate the native project, so custom native code (share extension, App Groups, associated domains) still works. EAS handles signing and TestFlight uploads. Much less Xcode time.
+- **Bare React Native**: Total control of the Xcode project, and no dependency on Expo's release cadence. More setup, more signing work, and every native change is done by hand.
+
+### D-9 · Where the design system lives once there are two renderers — **Decided: Tokens become the shared layer**
+
+`tokens.css` is web-only, and Base UI cannot run on iOS. The rule that kept-ui is the single source of truth for the UI was written when there was one renderer, and the rebuild breaks it.
+
+- **Tokens become the shared layer** _(chosen)_: Colors, type scale, spacing and radii move to `tokens.json`, which generates the CSS custom properties for web and a typed object for native. kept-ui stays the source of truth for web layout and design intent; tokens become the source for both.
+- **kept-ui stays the source, native copies by hand**: No new tooling. Every token change has to be mirrored into the native app manually, and they will drift.
+- **Let iOS have its own design system**: Fastest in the short term, and guarantees the two apps stop looking like the same product.
+
+### D-10 · Where the session lives on the device — **Decided: Keychain via `expo-secure-store`**
+
+The web app keeps its session in `sessionStorage` so a refresh mid-2FA stays on the MFA step. A phone app is expected to stay signed in for months, which makes the storage choice a security decision rather than a convenience one.
+
+- **Keychain via `expo-secure-store`** _(chosen)_: Refresh tokens live in the iOS keychain, protected by the device passcode and wiped on uninstall. Supabase's auth client takes a custom storage adapter, so this is a small amount of code.
+- **`AsyncStorage`**: The common default in React Native examples. It is an unencrypted file in the app container — acceptable for preferences, not for a refresh token that grants access to the whole library.
+
 ## Phases
 
 ### Ground work (2/7)
@@ -121,6 +159,20 @@ Username sign-in through an Edge Function, a real session behind the synchronous
 - [ ] **KEPT-15** Wire TOTP enrollment and challenge — Backlog, Urgent
 - [ ] **KEPT-16** Create your account by hand — Backlog, High
 
+### iOS foundation (0/9)
+
+The native app exists and can be run on your phone: framework, tokens, navigation, and the motion primitives everything else is built on. No backend dependency, so it runs alongside p1. _Target: A shell that feels right._
+
+- [ ] **KEPT-37** Confirm the native framework and retire the Capacitor plan — Todo, Urgent
+- [ ] **KEPT-38** Settle the app name and bundle identifier — Todo, Urgent
+- [ ] **KEPT-39** Join the Apple Developer Program — Backlog, High
+- [ ] **KEPT-40** Create the React Native app — Backlog, Urgent
+- [ ] **KEPT-41** Design tokens as shared data — Backlog, Urgent
+- [ ] **KEPT-42** Native information architecture — Backlog, Urgent
+- [ ] **KEPT-43** Type, fonts, dark mode and safe areas — Backlog, High
+- [ ] **KEPT-44** Motion and gesture foundations — Backlog, Urgent
+- [ ] **KEPT-45** The data contract on native — Backlog, Urgent
+
 ### Library data (0/6)
 
 Collections, references, notes, tags, pins and uploads move from browser storage to Postgres and Storage. _Target: Same functions, real rows._
@@ -147,24 +199,65 @@ Invite requests stored server-side, deduplicated by email, with a notification t
 - [ ] **KEPT-26** Store invite requests server-side — Backlog, High
 - [ ] **KEPT-27** Tell you when someone asks for an invite — Backlog, Medium
 
-### Move in and ship (0/4)
+### iOS library (0/10)
 
-Seed moode-matcha into Storage, set env and secrets, re-verify pixel parity and RLS, deploy. _Target: kept.design._
+The screens that matter on a phone: collections, the reference grid, the viewer, pins, notes. Built against the contract on mocks, then wired to real data once p3 lands. _Target: Browsing that feels native._
+
+- [ ] **KEPT-46** Collections home — Backlog, High
+- [ ] **KEPT-47** The reference grid — Backlog, Urgent
+- [ ] **KEPT-48** Reference viewer: pinch, pan and drag to dismiss — Backlog, Urgent
+- [ ] **KEPT-49** Swipe between references — Backlog, High
+- [ ] **KEPT-50** Pins on native — Backlog, High
+- [ ] **KEPT-51** Notes, tags and titles — Backlog, High
+- [ ] **KEPT-52** Search on device — Backlog, Medium
+- [ ] **KEPT-53** The feel pass — Backlog, Urgent
+- [ ] **KEPT-54** Image cache and offline reads — Backlog, High
+- [ ] **KEPT-55** Wire the native library to Supabase — Backlog, Urgent
+
+### iOS capture (0/5)
+
+The reason the app exists: camera, photo library, and Share → Kept from Safari, Photos or Instagram, with an upload queue that survives losing signal. _Target: Capture from anywhere._
+
+- [ ] **KEPT-56** Camera and photo library import — Backlog, Urgent
+- [ ] **KEPT-57** Share extension — Backlog, Urgent
+- [ ] **KEPT-58** App Group handoff — Backlog, Urgent
+- [ ] **KEPT-59** Upload queue and background uploads — Backlog, Urgent
+- [ ] **KEPT-60** Native share sheet for board links — Backlog, Medium
+
+### Web v0 ship (0/4)
+
+Seed moode-matcha into Storage, set env and secrets, re-verify pixel parity and RLS, deploy the web app. _Target: kept.design._
 
 - [ ] **KEPT-28** Seed moode-matcha into Storage — Backlog, High
 - [ ] **KEPT-29** Environment variables and secrets — Backlog, Urgent
-- [ ] **KEPT-30** Verify: pixel parity, end-to-end and RLS — Backlog, Urgent
-- [ ] **KEPT-31** Ship to kept.design — Backlog, Urgent
+- [ ] **KEPT-30** Verify the web app: pixel parity, end-to-end and RLS — Backlog, Urgent
+- [ ] **KEPT-31** Ship the web app to kept.design — Backlog, Urgent
 
-### Later (0/5)
+### iOS ship (0/7)
 
-Worth doing, not needed for v0: box annotations, renaming, server search, share previews. _Target: After v0._
+Universal Links, the App Store requirements that are not optional (account deletion, privacy manifest, minimum functionality), then TestFlight and review. _Target: On the App Store._
+
+- [ ] **KEPT-61** Universal Links for boards — Backlog, High
+- [ ] **KEPT-62** Delete your account, in the app — Backlog, Urgent
+- [ ] **KEPT-63** Privacy manifest and App Store privacy answers — Backlog, Urgent
+- [ ] **KEPT-64** App icon, launch screen and store assets — Backlog, High
+- [ ] **KEPT-65** Guideline 4.2 readiness review — Backlog, Urgent
+- [ ] **KEPT-66** TestFlight beta — Backlog, Urgent
+- [ ] **KEPT-67** App Store submission — Backlog, Urgent
+
+### Later (0/9)
+
+Worth doing, not needed for v0: box annotations, renaming, server search, share previews, and the bigger platform bets (iPad, widgets, Android, a SwiftUI rewrite if the feel ceiling is ever hit). _Target: After v0._
 
 - [ ] **KEPT-32** Box annotations — Backlog, Low
 - [ ] **KEPT-33** Rename references — Backlog, Low
 - [ ] **KEPT-34** Server-side search and a command palette — Backlog, Low
 - [ ] **KEPT-35** Board link previews — Backlog, Low
 - [ ] **KEPT-36** Move images to R2 if Storage costs bite — Backlog, No priority
+- [ ] **KEPT-68** Revisit SwiftUI if the feel ceiling is hit — Backlog, No priority
+- [ ] **KEPT-69** iPad — Backlog, Low
+- [ ] **KEPT-70** Widgets, Live Activities and Shortcuts — Backlog, Low
+- [ ] **KEPT-71** Android — Backlog, No priority
 
 ## Issues
 
@@ -208,7 +301,7 @@ Worth doing, not needed for v0: box annotations, renaming, server search, share 
 - [x] `npm run build` passes on main
 - [x] Vercel production shows the kept-ui landing
 
-**Notes.** An automated merge was blocked by the permission check last session, so this needs your go-ahead or a merge on GitHub. Merged 2026-09-19 as 4248833; Vercel deploy succeeded and kept.design serves the new UI.
+**Notes.** Merged 2026-09-19 as 4248833; Vercel deploy succeeded and kept.design serves the new UI.
 
 ### KEPT-2 · Decide how usernames sign in (D-1)
 
@@ -447,7 +540,7 @@ create policy "require mfa" on refs as restrictive for all to authenticated
 - **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** Sign-in and two-factor
 - **Labels:** auth
 - **Blocked by:** KEPT-11
-- **Blocks:** KEPT-15
+- **Blocks:** KEPT-15, KEPT-55
 
 **Why.** Screens and the auth gate call `getSession()` synchronously and expect `{ username, aal }`. Supabase's session API is async, so the app has to load the session once before the first render and keep a cache.
 
@@ -484,7 +577,7 @@ create policy "require mfa" on refs as restrictive for all to authenticated
 - [ ] kept-ui has the approved screen and mock functions
 - [ ] kept-design matches it pixel for pixel after the sync
 
-**Notes.** This is the one issue that touches kept-ui. It's lab work done with your approval, like the other screens, not a change pushed from kept-design.
+**Notes.** This is the one issue that touches kept-ui. It's lab work done with your approval, like the other screens, not a change pushed from kept-design. Since D-6, there are two renderers: kept-ui remains the source for the web screen, and the native two-factor screen is designed separately under KEPT-42's information architecture. The seam functions (`getMfaStatus`, `startTotpEnrollment`, `verifyTotp`) are shared by both.
 
 ### KEPT-15 · Wire TOTP enrollment and challenge
 
@@ -575,7 +668,7 @@ create policy "require mfa" on refs as restrictive for all to authenticated
 - **Status:** Backlog · **Priority:** Urgent · **Estimate:** 5 pt · **Phase:** Library data
 - **Labels:** data, storage
 - **Blocked by:** KEPT-17, KEPT-10
-- **Blocks:** KEPT-20, KEPT-21
+- **Blocks:** KEPT-20, KEPT-21, KEPT-55
 
 **Why.** The collection grid, list, reference page and All references all read `listReferences()`. It must return complete `Reference` objects, image URLs included, fast enough for 160+ items.
 
@@ -617,7 +710,7 @@ create policy "require mfa" on refs as restrictive for all to authenticated
 - **Status:** Backlog · **Priority:** Urgent · **Estimate:** 5 pt · **Phase:** Library data
 - **Labels:** data, storage
 - **Blocked by:** KEPT-19
-- **Blocks:** KEPT-28
+- **Blocks:** KEPT-28, KEPT-55, KEPT-59
 
 **Why.** The upload dialog's rows (Waiting, Adding…, Added, “Couldn’t read this file”) and its running count stay the same; only where the files go changes.
 
@@ -650,7 +743,7 @@ create policy "require mfa" on refs as restrictive for all to authenticated
 - **Status:** Backlog · **Priority:** High · **Estimate:** 2 pt · **Phase:** Boards
 - **Labels:** data, db
 - **Blocked by:** KEPT-17
-- **Blocks:** KEPT-24, KEPT-25, KEPT-28
+- **Blocks:** KEPT-24, KEPT-25, KEPT-28, KEPT-60
 
 **Why.** The share dialog's states (not shared, shared with a link, new link, unpublished) move from localStorage to `collection_shares`.
 
@@ -672,7 +765,7 @@ create policy "require mfa" on refs as restrictive for all to authenticated
 - **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** Boards
 - **Labels:** edge function, storage, security
 - **Blocked by:** KEPT-23, KEPT-3
-- **Blocks:** KEPT-30
+- **Blocks:** KEPT-30, KEPT-61
 
 **Why.** Implements D-2. `/m/:token` has to work with no session, so it can't go through RLS as a user.
 
@@ -746,7 +839,7 @@ create policy "require mfa" on refs as restrictive for all to authenticated
 
 ### KEPT-28 · Seed moode-matcha into Storage
 
-- **Status:** Backlog · **Priority:** High · **Estimate:** 3 pt · **Phase:** Move in and ship
+- **Status:** Backlog · **Priority:** High · **Estimate:** 3 pt · **Phase:** Web v0 ship
 - **Labels:** data, ops
 - **Blocked by:** KEPT-21, KEPT-23, KEPT-16
 - **Blocks:** KEPT-30
@@ -767,7 +860,7 @@ create policy "require mfa" on refs as restrictive for all to authenticated
 
 ### KEPT-29 · Environment variables and secrets
 
-- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 1 pt · **Phase:** Move in and ship
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 1 pt · **Phase:** Web v0 ship
 - **Labels:** infra, security
 - **Blocked by:** KEPT-7
 - **Blocks:** KEPT-31
@@ -786,9 +879,9 @@ create policy "require mfa" on refs as restrictive for all to authenticated
 - [ ] `grep` of `dist/` finds no service-role key
 - [ ] Previews without secrets fall back to the mocks (D-4)
 
-### KEPT-30 · Verify: pixel parity, end-to-end and RLS
+### KEPT-30 · Verify the web app: pixel parity, end-to-end and RLS
 
-- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** Move in and ship
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** Web v0 ship
 - **Labels:** security, ui
 - **Blocked by:** KEPT-28, KEPT-24, KEPT-26
 - **Blocks:** KEPT-31
@@ -806,11 +899,12 @@ create policy "require mfa" on refs as restrictive for all to authenticated
 
 - [ ] All three pass on the production project before the domain switch
 
-### KEPT-31 · Ship to kept.design
+### KEPT-31 · Ship the web app to kept.design
 
-- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 1 pt · **Phase:** Move in and ship
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 1 pt · **Phase:** Web v0 ship
 - **Labels:** ops
 - **Blocked by:** KEPT-30, KEPT-29, KEPT-1
+- **Blocks:** KEPT-61
 
 **Why.** The finish line for v0.
 
@@ -858,3 +952,764 @@ create policy "require mfa" on refs as restrictive for all to authenticated
 - **Labels:** storage, infra
 
 **Why.** Out of scope for v0 by design. Revisit only if egress or storage costs become real.
+
+### KEPT-37 · Confirm the native framework and retire the Capacitor plan
+
+- **Status:** Todo · **Priority:** Urgent · **Estimate:** 1 pt · **Phase:** iOS foundation
+- **Labels:** decision, ios
+- **Blocks:** KEPT-40
+
+**Why.** The `/ios` page in the app still describes a Capacitor wrapper, chosen when the goal was "don't rebuild the UI". The goal is now an app that feels native in the hand, which points somewhere else (D-6). The old plan has to be retired in writing or it will keep resurfacing.
+
+**Approach**
+
+1. Record the call in D-6 with the reasoning, not just the choice.
+2. Rewrite `src/kept/KeptIos.tsx` so `/ios` describes the real plan. Four things in it are already wrong: it says hash routes work unchanged (kept-design uses real paths), it says `pnpm` (this repo is npm), it points at `kept-ui.vercel.app` as "today", and it hardcodes a LAN IP in a public repo.
+3. Rewrite the AGENTS.md rule that kept-ui is the single source of truth for the UI: true for web, false once a second renderer exists.
+4. Write down the condition that would reopen D-6, so it is a test rather than a mood: KEPT-44 failing its frame budget on device.
+
+**Done when**
+
+- [ ] D-6 has a chosen option and a recorded reason
+- [ ] `/ios` describes the current plan and contains no stale claims
+- [ ] AGENTS.md says which source of truth applies to which renderer
+
+**Notes.** Nothing in the backend roadmap (p1–p6) is affected by this decision. Schema, RLS, Storage, Auth and both Edge Functions serve a native client exactly as they serve the browser.
+
+### KEPT-38 · Settle the app name and bundle identifier
+
+- **Status:** Todo · **Priority:** Urgent · **Estimate:** 1 pt · **Phase:** iOS foundation
+- **Labels:** decision, ios, ops
+- **Blocks:** KEPT-39, KEPT-40, KEPT-64
+
+**Why.** A bundle identifier is permanent once the app is public. Changing it after release means a new App Store listing, new reviews, and no upgrade path for anyone who already installed it. The name question has been open and low-priority; for iOS it stops being low-priority at KEPT-40.
+
+**Approach**
+
+1. Settle D-7.
+2. Pick the reverse-DNS identifier (`design.kept.app` if the name stands) and write it down in exactly one place that the Xcode project, the App Group, the associated domain and App Store Connect all read from.
+3. Reserve the name in App Store Connect once KEPT-39 is done — reservation is first-come and free.
+
+**Done when**
+
+- [ ] D-7 has a chosen option
+- [ ] The identifier is recorded once and referenced everywhere else
+- [ ] The name is reserved in App Store Connect
+
+**Notes.** The App Store display name can be changed later. The bundle identifier and the App Group identifier cannot, in practice.
+
+### KEPT-39 · Join the Apple Developer Program
+
+- **Status:** Backlog · **Priority:** High · **Estimate:** 1 pt · **Phase:** iOS foundation
+- **Labels:** ios, ops
+- **Blocked by:** KEPT-38
+
+**Why.** $99 a year. Required for TestFlight, the App Store, Universal Links, App Groups and push. A free Apple ID can only sideload to your own device, and the install expires after seven days — enough to prove KEPT-44, not enough to live with the app.
+
+**Approach**
+
+1. Enroll. Individual or company changes the seller name shown publicly on the App Store; switching afterwards is a support process, not a settings toggle.
+2. Two-factor on the Apple ID is mandatory for App Store Connect.
+3. Create the app record in App Store Connect and reserve the name from KEPT-38.
+
+**Done when**
+
+- [ ] Membership is active
+- [ ] App Store Connect has the app record with the agreed bundle identifier
+
+**Notes.** Enrolling as an individual publishes your legal name as the seller. If that matters, sort out the entity before enrolling rather than after.
+
+### KEPT-40 · Create the React Native app
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** iOS foundation
+- **Labels:** ios, native
+- **Blocked by:** KEPT-37, KEPT-38
+- **Blocks:** KEPT-58
+
+**Why.** The project itself: Expo with a development build (D-8), TypeScript strict, the agreed bundle identifier, and the one Info.plist flag without which the app is capped at 60fps on a 120Hz phone.
+
+**Approach**
+
+1. `npx create-expo-app` with the TypeScript template; add `expo-dev-client` so custom native code is possible from day one.
+2. Set the bundle identifier from KEPT-38 in `app.config.ts`.
+3. Set `CADisableMinimumFrameDurationOnPhone` to `YES` in Info.plist. Without it iOS caps the app at 60fps on ProMotion devices and every animation silently loses half its frames.
+4. EAS build profiles: `development` (dev client on device), `preview` (internal distribution), `production` (TestFlight and App Store).
+5. Decide repo layout: a sibling repo, or a folder in a monorepo alongside the web app. The only thing that genuinely needs sharing is tokens (KEPT-41) and the data contract (KEPT-45).
+
+**Sketch**
+
+```text
+app.config.ts
+  ios.bundleIdentifier   design.kept.app          (D-7)
+  ios.infoPlist          CADisableMinimumFrameDurationOnPhone: true
+  ios.supportsTablet     false                    (iPad is a later bet)
+  plugins                expo-dev-client, expo-font, expo-image,
+                         expo-secure-store, expo-image-picker
+```
+
+**Done when**
+
+- [ ] A development build runs on your iPhone over the cable
+- [ ] A test animation measurably runs above 60fps on device
+- [ ] The bundle identifier matches KEPT-38 everywhere it appears
+
+### KEPT-41 · Design tokens as shared data
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** iOS foundation
+- **Labels:** ui, ios, data
+
+**Why.** `tokens.css` is web-only, so today there is no way for the two apps to agree on a colour. Implements D-9: one source of truth that generates both.
+
+**Approach**
+
+1. Extract `src/kept/tokens.css` into `tokens.json`: colour (light and dark), spacing scale, radii, type scale, weights, and the motion constants from KEPT-44.
+2. A generator emits CSS custom properties for the web app and a typed TS object for native.
+3. The web app keeps importing the generated CSS, so nothing changes visually and the pixel sweep still passes.
+4. Lint rule or review habit: no raw hex, no magic spacing numbers in native screen code.
+
+**Done when**
+
+- [ ] Changing one value in `tokens.json` changes both apps
+- [ ] The web app is pixel-identical before and after the extraction
+- [ ] Native screens reference tokens, never literals
+
+**Notes.** This is the concrete moment kept-ui stops being the single source of truth for the UI. It stays the source for web layout and design intent; tokens become the shared layer beneath both.
+
+### KEPT-42 · Native information architecture
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** iOS foundation
+- **Labels:** ios, ui, kept-ui first
+- **Blocks:** KEPT-46
+
+**Why.** The web app is a three-pane desktop layout across 16 routes. A phone is not a small desktop: the screens have to be re-planned, not ported. Getting this wrong is expensive because every later screen sits inside it.
+
+**Approach**
+
+1. Decide the root: a tab bar (Library · Search · Add · You) or a single stack with a prominent capture action.
+2. Map each of the 16 web routes to a native screen, a sheet, or explicitly nothing. `/map`, `/ios`, `/todo` and `/referral` are almost certainly nothing.
+3. Decide what a modal sheet is and what is a pushed screen — a rule, applied consistently, not a per-screen judgement call.
+4. Design it before building it. Whether that is kept-ui, Figma or paper matters less than it being approved before KEPT-46 starts.
+
+**Done when**
+
+- [ ] Every web route has a native counterpart or a written "not on phone"
+- [ ] The navigation shape is approved before any library screen is built
+
+**Notes.** Kept's job on a phone is capture and browse. The long tail of account screens can be thin or absent without hurting the product.
+
+### KEPT-43 · Type, fonts, dark mode and safe areas
+
+- **Status:** Backlog · **Priority:** High · **Estimate:** 2 pt · **Phase:** iOS foundation
+- **Labels:** ui, ios
+
+**Why.** The chrome that makes a native app feel like it belongs to the same product as the website.
+
+**Approach**
+
+1. Load Geist and Geist Mono with `expo-font`; fall back to the system face while they load rather than flashing.
+2. Light and dark from `useColorScheme`, reading the same tokens as the web (KEPT-41).
+3. Safe areas with `react-native-safe-area-context` — the notch, the home indicator, and the keyboard.
+4. Decide the Dynamic Type position: full support, or a capped scale. Accessibility text sizes will break a dense image grid if ignored entirely.
+
+**Done when**
+
+- [ ] Light and dark match the web tokens side by side
+- [ ] Nothing is obscured by the notch or the home indicator on a modern iPhone
+- [ ] Text at the largest accessibility size is still usable
+
+### KEPT-44 · Motion and gesture foundations
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 5 pt · **Phase:** iOS foundation
+- **Labels:** ios, motion, native
+- **Blocks:** KEPT-46, KEPT-47
+
+**Why.** The whole reason for rebuilding instead of wrapping. These primitives get set once, before any screen depends on them, and they are also the test of whether the framework choice was right.
+
+**Approach**
+
+1. `react-native-reanimated` and `react-native-gesture-handler`. Every animation runs on the UI thread from a shared value — never driven by React state, which puts it back on the JS thread and back at the mercy of a render.
+2. One shared spring configuration in tokens, so every surface in the app decelerates the same way.
+3. The rule, written down: every animation is interruptible. Anything you can start with a gesture, you can catch mid-flight and reverse.
+4. Velocity carries from the gesture into the animation. A flung sheet keeps the speed of the finger that threw it.
+5. Build a throwaway test screen: 300 images, fast scroll, a pinch, a drag-dismiss. Profile it on a real device, not the simulator.
+6. Load the `apple-design` and `gesture-ui` guidance before setting the spring values, rather than guessing at numbers.
+
+**Done when**
+
+- [ ] A scroll of 300 images holds 120fps on device
+- [ ] A sheet can be caught mid-animation and reversed without snapping
+- [ ] Nothing animates through React state
+
+**Notes.** If this issue cannot hit its frame budget, D-6 gets reopened here — before sixteen screens are built on top of it, not after.
+
+### KEPT-45 · The data contract on native
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** iOS foundation
+- **Labels:** data, ios
+- **Blocks:** KEPT-46, KEPT-55
+
+**Why.** The seam is the most valuable thing in the web repo: screens call `repository.ts` and `session.ts`, and swapping mocks for Supabase touches no screen. The native app gets the same seam, so its screens can be built on mocks while the backend is still being built.
+
+**Approach**
+
+1. Same function names and return shapes as the web: `listCollections`, `getCollection`, `listReferences`, `updateReference`, `addUploads`, `getSession`, `signInWithPassword`.
+2. Share the generated database types from KEPT-11 rather than redeclaring them; a drift here should fail a typecheck, not surface as a bug.
+3. `supabase-js` in React Native needs `react-native-url-polyfill` and a storage adapter for auth — the keychain one from D-10.
+4. Port the mock repository so every screen in p9 can be built and demoed before p3 lands.
+
+**Done when**
+
+- [ ] Native screens compile against the same types the web app uses
+- [ ] Every p9 screen runs on mocks with no backend
+- [ ] Swapping mocks for Supabase touches one module
+
+**Notes.** Depends on KEPT-11 only for the generated types. Everything else here can start immediately.
+
+### KEPT-46 · Collections home
+
+- **Status:** Backlog · **Priority:** High · **Estimate:** 3 pt · **Phase:** iOS library
+- **Labels:** ios, ui
+- **Blocked by:** KEPT-42, KEPT-44, KEPT-45
+- **Blocks:** KEPT-47, KEPT-51
+
+**Why.** The root screen: your collections, and a way into All references. The first screen built on the KEPT-42 navigation and the KEPT-44 primitives, so it is also where both get proven.
+
+**Approach**
+
+1. Collection list or grid with cover images and counts.
+2. Pull to refresh; empty state; skeletons that match the token type scale rather than generic grey bars.
+3. Create a collection from here, as a sheet.
+4. Open transition into a collection uses the shared spring, not a stock push.
+
+**Done when**
+
+- [ ] Matches the approved KEPT-42 design
+- [ ] Runs entirely on mocks
+- [ ] Cold open to interactive in under a second on device
+
+### KEPT-47 · The reference grid
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 8 pt · **Phase:** iOS library
+- **Labels:** ios, ui, motion
+- **Blocked by:** KEPT-44, KEPT-46
+- **Blocks:** KEPT-48, KEPT-52, KEPT-54
+
+**Why.** The screen Kept lives or dies on, and the one a web view could never do properly: hundreds of images, scrolled fast, at 120fps, without the app being killed for memory. moode-matcha alone is 320 files.
+
+**Approach**
+
+1. `@shopify/flash-list` for recycling. A plain list keeps every row mounted and will not survive a real library.
+2. `expo-image` for decode and caching — it is backed by SDWebImage on iOS and handles memory and disk caching properly.
+3. Thumbnails in the grid (480px), never the full image. The full 1600px asset is only ever loaded by the viewer.
+4. Prefetch ahead of the scroll direction; cancel prefetches that scroll past.
+5. Set an explicit memory ceiling for the image cache and test against the largest collection, not a demo one.
+6. Fixed aspect tiles or a measured masonry layout — decide before building, since masonry with recycling is materially harder.
+
+**Done when**
+
+- [ ] 300+ references scroll at 120fps on device with no blank tiles
+- [ ] Memory stays flat over a long scroll; the app is not jetsammed
+- [ ] A cold open with a warm disk cache shows images without a flash
+
+**Notes.** This is the issue that proves or disproves the whole rebuild. Worth profiling on the oldest phone you intend to support, not just yours.
+
+### KEPT-48 · Reference viewer: pinch, pan and drag to dismiss
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 8 pt · **Phase:** iOS library
+- **Labels:** ios, motion
+- **Blocked by:** KEPT-47
+- **Blocks:** KEPT-49, KEPT-50, KEPT-53
+
+**Why.** Opening a reference is the most-repeated gesture in the app. It is also the clearest single signal of whether an app feels native, because everyone has Photos.app as a reference point.
+
+**Approach**
+
+1. Shared-element transition from the grid tile into the viewer: the tile becomes the image, it does not cross-fade.
+2. Pinch to zoom with two-finger pan, tracking the fingers exactly, with rubber-banding past the bounds and a spring back.
+3. Drag down to dismiss, with the background dimming in proportion to the drag and the image returning to its tile if released early.
+4. Velocity decides the outcome: a fast flick dismisses even from a short distance.
+5. Every part of it interruptible — you can catch a dismissing image and drag it back.
+
+**Done when**
+
+- [ ] Pinch tracks the fingers with no perceptible lag
+- [ ] A dismiss can be reversed mid-flight
+- [ ] The image lands exactly on its grid tile when it returns
+- [ ] Holds 120fps throughout on device
+
+**Notes.** Load the `apple-design` and `gesture-ui` guidance before building this one. It is the issue most worth over-investing in.
+
+### KEPT-49 · Swipe between references
+
+- **Status:** Backlog · **Priority:** High · **Estimate:** 5 pt · **Phase:** iOS library
+- **Labels:** ios, motion
+- **Blocked by:** KEPT-48
+
+**Why.** Once a reference is open, moving to the next one should be a flick, not a trip back to the grid.
+
+**Approach**
+
+1. Horizontal paging within the viewer, sharing the zoom state machine from KEPT-48 so a zoomed image pans instead of paging.
+2. Preload the neighbours on both sides; release images more than two away.
+3. Keep the grid's scroll position in sync, so dismissing returns you to the reference you ended on rather than the one you started from.
+
+**Done when**
+
+- [ ] Swiping through twenty references never shows a loading state
+- [ ] Dismissing lands on the correct tile after paging
+- [ ] Zoomed panning never accidentally pages
+
+### KEPT-50 · Pins on native
+
+- **Status:** Backlog · **Priority:** High · **Estimate:** 5 pt · **Phase:** iOS library
+- **Labels:** ios, ui
+- **Blocked by:** KEPT-48
+- **Blocks:** KEPT-53
+
+**Why.** Pins are what make a reference a reference rather than a photo. Placing one on a phone is a different interaction from placing one with a mouse.
+
+**Approach**
+
+1. Long-press to place, drag to position, with the pin offset above the finger so it is not hidden by it.
+2. A magnifier or offset preview while dragging, since the finger covers the target.
+3. Caption entry as a sheet, with the keyboard handled so the pin stays visible.
+4. Haptic on placement and on hitting a snap threshold, not on every frame of the drag.
+5. Pins live in image coordinates, not screen coordinates, so they survive zoom and rotation.
+
+**Done when**
+
+- [ ] A pin can be placed accurately at the top and bottom edges of the image
+- [ ] Pin positions match the web app exactly for the same reference
+- [ ] Captions are readable and editable with the keyboard up
+
+### KEPT-51 · Notes, tags and titles
+
+- **Status:** Backlog · **Priority:** High · **Estimate:** 3 pt · **Phase:** iOS library
+- **Labels:** ios, ui
+- **Blocked by:** KEPT-46
+
+**Why.** The editing surfaces. Mostly unremarkable, except that keyboard handling on iOS is where otherwise-good apps fall apart.
+
+**Approach**
+
+1. Notes as a sheet with the keyboard pushing content rather than covering it.
+2. Tag entry with autocomplete from existing tags; creating a tag is the same gesture as picking one.
+3. Save on dismiss, not with an explicit Save button; show that it saved without a modal.
+4. Same field-level errors and copy as the web app.
+
+**Done when**
+
+- [ ] The caret is never hidden behind the keyboard
+- [ ] Dismissing the sheet mid-edit does not lose the edit
+- [ ] Tags created on the phone appear on the web and the reverse
+
+### KEPT-52 · Search on device
+
+- **Status:** Backlog · **Priority:** Medium · **Estimate:** 3 pt · **Phase:** iOS library
+- **Labels:** ios, ui
+- **Blocked by:** KEPT-47
+
+**Why.** Matches the web app's v0 position (KEPT-22): filter what is already loaded rather than build server search. Revisit with KEPT-34 when either client outgrows it.
+
+**Approach**
+
+1. Filter across titles, notes, tags and pin captions — the same fields the web filters.
+2. Debounced, running off the main thread if the library is large.
+3. Recent searches; an empty state that offers something rather than shrugging.
+
+**Done when**
+
+- [ ] Search over a 500-reference library stays responsive while typing
+- [ ] Results match the web app for the same query
+
+### KEPT-53 · The feel pass
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 5 pt · **Phase:** iOS library
+- **Labels:** ios, motion
+- **Blocked by:** KEPT-48, KEPT-50
+- **Blocks:** KEPT-64, KEPT-66
+
+**Why.** A dedicated pass over the whole app for the things that separate "works" from "feels amazing". Deliberately its own issue, because polish that is left as a sub-task of every other issue never happens.
+
+**Approach**
+
+1. Haptics bound to gesture thresholds and state changes, never to taps for their own sake. A haptic that fires on everything stops meaning anything.
+2. Audit every transition for interruptibility; anything that cannot be caught mid-flight gets rebuilt.
+3. Remove every stock animation that was left at its default while building.
+4. Check the whole app under Reduce Motion: every spring becomes a fade, nothing becomes a jump.
+5. Profile on device, holding 120fps through the grid, the viewer and every sheet.
+6. Hand the app to someone who has not seen it and watch where their thumb hesitates.
+
+**Done when**
+
+- [ ] 120fps held across the main flows on device
+- [ ] Reduce Motion produces a calm app, not a broken one
+- [ ] No default-looking transitions remain
+
+**Notes.** This is the issue that the whole rebuild was justified by. If it gets cut for time, the rebuild was not worth doing.
+
+### KEPT-54 · Image cache and offline reads
+
+- **Status:** Backlog · **Priority:** High · **Estimate:** 5 pt · **Phase:** iOS library
+- **Labels:** ios, storage
+- **Blocked by:** KEPT-47
+
+**Why.** A phone loses signal. A reference library that goes blank on the underground is not a library you trust.
+
+**Approach**
+
+1. Disk cache for thumbnails with an explicit size ceiling and an eviction policy.
+2. Cache collection and reference metadata so the grid renders offline even when images are still arriving.
+3. Signed Storage URLs expire — cache the image bytes, never the URL, and re-sign on demand.
+4. An honest offline state: show what is cached, say what is not, never an infinite spinner.
+
+**Done when**
+
+- [ ] Airplane mode still shows previously-browsed collections and thumbnails
+- [ ] Expired signed URLs re-sign without the user noticing
+- [ ] The cache respects its ceiling over a week of real use
+
+### KEPT-55 · Wire the native library to Supabase
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 5 pt · **Phase:** iOS library
+- **Labels:** ios, data
+- **Blocked by:** KEPT-45, KEPT-19, KEPT-21, KEPT-13
+- **Blocks:** KEPT-56, KEPT-58, KEPT-60
+
+**Why.** The moment the phone and the web become one product: the same account, the same collections, the same images, from either device. This is what "sign into the website and see what I collected on my phone" actually means.
+
+**Approach**
+
+1. Swap the mock adapter for the Supabase implementation behind the KEPT-45 contract — one module, no screen changes.
+2. Sign-in through the same `sign-in` Edge Function as the web, then TOTP to reach AAL2.
+3. Session in the keychain (D-10), with refresh handled on resume so the app is not signed out after a week in the background.
+4. Verify row-level security from the device: a second account must see nothing of yours.
+
+**Done when**
+
+- [ ] A collection made on the phone appears on the web without a reload, and the reverse
+- [ ] The app stays signed in across relaunches and a week of backgrounding
+- [ ] RLS holds from the native client, tested with a second account
+
+### KEPT-56 · Camera and photo library import
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 5 pt · **Phase:** iOS capture
+- **Labels:** ios, storage
+- **Blocked by:** KEPT-55
+- **Blocks:** KEPT-57, KEPT-59
+
+**Why.** The most obvious thing an app can do that a website cannot: put what is in front of you, or already on your phone, into a collection in two taps.
+
+**Approach**
+
+1. `expo-image-picker` for camera and library, with multi-select from the library.
+2. Permission strings in Info.plist written in Kept's voice — they are user-facing copy, not boilerplate.
+3. Use the limited photo library selection properly; do not nag for full access.
+4. Reuse the existing on-device resize (1600px full, 480px thumb, metadata stripped) so phone uploads match web uploads exactly.
+5. Strip location metadata. A reference library has no business recording where a photo was taken.
+
+**Done when**
+
+- [ ] A photo goes from camera to a collection in two taps
+- [ ] Limited photo access works without repeated prompting
+- [ ] Uploads from the phone are byte-comparable to the same file uploaded on the web
+
+### KEPT-57 · Share extension
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 8 pt · **Phase:** iOS capture
+- **Labels:** ios, native
+- **Blocked by:** KEPT-58, KEPT-56
+- **Blocks:** KEPT-65
+
+**Why.** The single best reason for this app to exist. Share → Kept from Safari, Photos or Instagram is how a visual reference library actually gets filled, and it is also what makes the app more than a website in a wrapper under App Store guideline 4.2.
+
+**Approach**
+
+1. A share extension target, added through an Expo config plugin (D-8) so it survives a prebuild.
+2. Accept images, URLs and text. A shared URL becomes a reference with `capture_url` set, matching the web's captured references.
+3. Pick a destination collection inside the extension, without launching the app.
+4. Extensions get a hard memory limit — around 120MB — and are killed without ceremony. Hand large images off rather than processing them in the extension.
+5. The extension UI is small: it must still look like Kept, using the shared tokens.
+
+**Done when**
+
+- [ ] Share → Kept works from Safari, Photos and Instagram
+- [ ] A shared URL lands as a reference with its capture URL set
+- [ ] Sharing ten large photos at once does not crash the extension
+- [ ] The destination collection can be chosen without opening the app
+
+**Notes.** The biggest single piece of native work in the plan, and the one that most changes how Kept is used day to day.
+
+### KEPT-58 · App Group handoff
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** iOS capture
+- **Labels:** ios, native, infra
+- **Blocked by:** KEPT-40, KEPT-55
+- **Blocks:** KEPT-57
+
+**Why.** A share extension is a separate process with its own sandbox. An App Group is the only way it can hand files and state to the app.
+
+**Approach**
+
+1. Create the App Group identifier alongside the bundle identifier (KEPT-38); like the bundle id, it is painful to change later.
+2. Shared container for handed-off files; shared defaults for the queue.
+3. The extension writes to the container and enqueues; the app drains the queue on next launch or resume.
+4. Share the auth session across the group so the extension knows who is signed in without its own sign-in flow.
+5. Clean up handed-off files after a successful upload, and on a schedule for ones that failed.
+
+**Done when**
+
+- [ ] The app picks up items shared while it was closed
+- [ ] The extension knows the signed-in account
+- [ ] Nothing accumulates indefinitely in the shared container
+
+### KEPT-59 · Upload queue and background uploads
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 8 pt · **Phase:** iOS capture
+- **Labels:** ios, storage
+- **Blocked by:** KEPT-56, KEPT-21
+- **Blocks:** KEPT-66
+
+**Why.** Phone uploads are not desktop uploads: the network drops, the app gets backgrounded, and iOS suspends processes without warning. An upload that only works in the foreground on good wifi is not an upload.
+
+**Approach**
+
+1. A persistent queue that survives app termination — on disk, not in memory.
+2. Per-item state matching the web's upload dialog: Waiting, Adding…, Added, failed. Same copy, same running count.
+3. Background upload via `URLSession` background transfers so uploads continue after the app is suspended.
+4. Retry with backoff; distinguish a failed file from a lost connection and say which.
+5. One failure never takes down the batch — the web app's rule, kept.
+6. Show the queue somewhere honest. An upload silently failing is worse than one visibly retrying.
+
+**Done when**
+
+- [ ] Twenty photos queued, app backgrounded immediately, all arrive
+- [ ] Killing the app mid-upload loses nothing; it resumes on next launch
+- [ ] Airplane mode queues and drains automatically on reconnect
+- [ ] One corrupt file fails alone, with no orphan rows or objects
+
+### KEPT-60 · Native share sheet for board links
+
+- **Status:** Backlog · **Priority:** Medium · **Estimate:** 2 pt · **Phase:** iOS capture
+- **Labels:** ios, ui
+- **Blocked by:** KEPT-55, KEPT-23
+
+**Why.** Publishing a board on the phone should hand you the system share sheet, not a copy-to-clipboard toast borrowed from the web.
+
+**Approach**
+
+1. The native share sheet for a published board link.
+2. Links use `https://kept.design/m/…` (KEPT-25), never a local or preview origin.
+3. Keep copy-to-clipboard as the secondary action, with the native haptic confirmation.
+
+**Done when**
+
+- [ ] Sharing a board offers Messages, Mail and the rest
+- [ ] The shared link is the public kept.design URL
+
+### KEPT-61 · Universal Links for boards
+
+- **Status:** Backlog · **Priority:** High · **Estimate:** 3 pt · **Phase:** iOS ship
+- **Labels:** ios, infra
+- **Blocked by:** KEPT-24, KEPT-31
+- **Blocks:** KEPT-67
+
+**Why.** A board link sent to someone who has the app should open the app, not Safari. It is also the thing that makes the two surfaces feel like one product from the outside.
+
+**Approach**
+
+1. Serve `apple-app-site-association` from `https://kept.design/.well-known/`, as JSON, no extension, no redirect, correct content type.
+2. Associated Domains entitlement (`applinks:kept.design`) in the app.
+3. Handle `/m/:token` as a cold start, not just while running — the common bug is only handling the warm case.
+4. Anyone without the app must still get the web board. The link is public and sign-in-free by design.
+5. Test from Messages and Notes; Safari's address bar deliberately does not trigger Universal Links.
+
+**Done when**
+
+- [ ] A board link opens the app when installed, the website when not
+- [ ] Cold start on a link lands on the right board
+- [ ] The association file validates
+
+### KEPT-62 · Delete your account, in the app
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** iOS ship
+- **Labels:** ios, security
+- **Blocks:** KEPT-66
+
+**Why.** App Store guideline 5.1.1(v): an app that supports account creation must let people delete the account from inside the app. Kept is invite-only and accounts are made by hand, which does not exempt it. This is a common rejection.
+
+**Approach**
+
+1. A delete path in the app that actually deletes: auth user, rows, and every Storage object.
+2. Confirmation that makes the consequence plain, and is hard to trigger accidentally.
+3. A server-side function does the deletion; the client must not be trusted to cascade it.
+4. Published boards die with the account.
+5. Decide and state the retention position — immediate, or a grace period — and make the copy match what actually happens.
+
+**Done when**
+
+- [ ] An account can be fully deleted from inside the app
+- [ ] No orphaned rows or Storage objects survive
+- [ ] Published board links stop resolving
+
+**Notes.** Worth building on the web app too. The requirement is Apple's, but the capability is not iOS-specific.
+
+### KEPT-63 · Privacy manifest and App Store privacy answers
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** iOS ship
+- **Labels:** ios, security
+- **Blocks:** KEPT-66
+
+**Why.** Apple requires a privacy manifest and accurate data-collection answers. Getting these wrong is both a rejection risk and a trust problem, since the answers are shown publicly on the listing.
+
+**Approach**
+
+1. `PrivacyInfo.xcprivacy` declaring data types collected and the reasons for any required-reason APIs.
+2. Check the manifests of every third-party SDK that ships in the binary; they aggregate into yours.
+3. Answer the App Store Connect privacy questions honestly: user content, identifiers, what is linked to the user, what is used for tracking (nothing).
+4. A privacy policy at a stable URL on kept.design; the listing requires one.
+5. If location metadata is stripped at import (KEPT-56), say so — it is a genuine selling point.
+
+**Done when**
+
+- [ ] The manifest covers the app and its dependencies
+- [ ] The privacy answers match what the app actually does
+- [ ] A privacy policy is live at a permanent URL
+
+### KEPT-64 · App icon, launch screen and store assets
+
+- **Status:** Backlog · **Priority:** High · **Estimate:** 3 pt · **Phase:** iOS ship
+- **Labels:** ios, ui
+- **Blocked by:** KEPT-38, KEPT-53
+- **Blocks:** KEPT-66
+
+**Why.** The first thing anyone sees, and the last thing anyone leaves time for.
+
+**Approach**
+
+1. App icon at every required size; test it on both light and dark home screens, and at the smallest size it will ever be drawn.
+2. Launch screen that matches the app's first frame so launch reads as instant rather than as a flash.
+3. App Store screenshots for the required device sizes, showing real collections rather than lorem ipsum.
+4. Listing copy: name, subtitle, description, keywords. The subtitle does a lot of work.
+5. Decide whether the icon reflects the KEPT wordmark or stands apart from it.
+
+**Done when**
+
+- [ ] The icon reads clearly at the smallest size, in light and dark
+- [ ] Launch does not flash a mismatched colour
+- [ ] Screenshots show the real app
+
+### KEPT-65 · Guideline 4.2 readiness review
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 2 pt · **Phase:** iOS ship
+- **Labels:** ios, app store
+- **Blocked by:** KEPT-57
+- **Blocks:** KEPT-67
+
+**Why.** Apple rejects apps that are a website in a wrapper. The rebuild makes this a much easier argument than the Capacitor plan would have, but it is still worth checking deliberately before submitting rather than discovering it in review.
+
+**Approach**
+
+1. Write down the native capabilities the website cannot have: share extension, camera capture, offline library, Universal Links, haptics, background uploads.
+2. Confirm the app is not merely a mirror of kept.design — the IA from KEPT-42 should already differ.
+3. Prepare reviewer notes explaining the invite-only model, with a working demo account. Invite-only apps get rejected for being untestable far more often than for anything else.
+4. Make sure the demo account has real content; an empty library looks broken to a reviewer.
+
+**Done when**
+
+- [ ] A written 4.2 argument exists before submission
+- [ ] Reviewer notes include working credentials and a populated demo account
+
+**Notes.** The demo account is the single most common avoidable rejection for invite-only apps. Set it up before you need it.
+
+### KEPT-66 · TestFlight beta
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** iOS ship
+- **Labels:** ios, ops
+- **Blocked by:** KEPT-53, KEPT-59, KEPT-62, KEPT-63, KEPT-64
+- **Blocks:** KEPT-67
+
+**Why.** Real devices, real hands, before the App Store. Also the first time the app runs without a cable and a debugger attached.
+
+**Approach**
+
+1. EAS production build uploaded to App Store Connect.
+2. Internal testers first (up to 100, no review). External testing needs a beta review, which is lighter than App Store review but not instant.
+3. Builds expire after 90 days — plan the cadence rather than being surprised.
+4. Set up crash reporting before the first tester, not after the first crash.
+5. Ask testers for one specific thing: does it feel good in the hand? Everything else is easier to find yourself.
+
+**Done when**
+
+- [ ] A build is installable from TestFlight on a device that has never been cabled to your Mac
+- [ ] Crashes report with symbols
+- [ ] At least a handful of testers have used it on a real library
+
+### KEPT-67 · App Store submission
+
+- **Status:** Backlog · **Priority:** Urgent · **Estimate:** 3 pt · **Phase:** iOS ship
+- **Labels:** ios, app store
+- **Blocked by:** KEPT-66, KEPT-65, KEPT-61
+
+**Why.** The finish line for iOS v1.
+
+**Approach**
+
+1. Final build, listing, screenshots, privacy answers and reviewer notes.
+2. Age rating, export compliance (the app uses HTTPS, which is the usual answer), content rights.
+3. Submit, then expect a round of review feedback rather than being surprised by it.
+4. Plan the release: manual release rather than automatic, so the launch happens when you choose.
+5. Tick it off in Kept's own To do page.
+
+**Done when**
+
+- [ ] The app is on the App Store
+- [ ] A phone-only user can be invited, sign in and build a library end to end
+
+### KEPT-68 · Revisit SwiftUI if the feel ceiling is hit
+
+- **Status:** Backlog · **Priority:** No priority · **Estimate:** 8 pt · **Phase:** Later
+- **Labels:** ios, decision
+
+**Why.** React Native gets very close to native feel and is not native. If KEPT-53 keeps finding things that cannot be fixed from JavaScript, the ceiling is real and this is the escape hatch.
+
+**Done when**
+
+- [ ] Only opened if a specific, repeated feel problem traces to the framework rather than the implementation
+
+**Notes.** Deliberately parked, not rejected. Reopening this without a concrete failing test from KEPT-44 or KEPT-53 is relitigating D-6.
+
+### KEPT-69 · iPad
+
+- **Status:** Backlog · **Priority:** Low · **Estimate:** 5 pt · **Phase:** Later
+- **Labels:** ios, ui
+
+**Why.** A reference library on a larger screen is genuinely compelling — closer to the desktop three-pane layout than the phone is. Out of scope for v1: it is a second IA to design and maintain.
+
+**Done when**
+
+- [ ] Revisit once the phone app is in real use
+
+### KEPT-70 · Widgets, Live Activities and Shortcuts
+
+- **Status:** Backlog · **Priority:** Low · **Estimate:** 5 pt · **Phase:** Later
+- **Labels:** ios, native
+
+**Why.** A widget showing a rotating reference from a collection is an obvious fit for a visual library, and Shortcuts would let Kept be scripted into other capture flows.
+
+**Done when**
+
+- [ ] Revisit after the App Store release
+
+### KEPT-71 · Android
+
+- **Status:** Backlog · **Priority:** No priority · **Estimate:** 8 pt · **Phase:** Later
+- **Labels:** native
+
+**Why.** React Native makes this cheaper than it would otherwise be, but it is not free: platform-specific IA, its own store process, its own test devices. No demand for it yet.
+
+**Done when**
+
+- [ ] Only if someone actually asks
+
+**Notes.** One of the few upsides of React Native over SwiftUI that has no cost until you choose to use it.

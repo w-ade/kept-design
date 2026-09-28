@@ -54,12 +54,16 @@ export function KeptRequest() {
             onFormSubmit={async (values) => {
               setPending(true);
               const email = String(values.email).trim().toLowerCase();
-              const { alreadyRequested } = await requestInvite({
-                name: String(values.name),
-                email,
-                note: String(values.note ?? ''),
-              });
-              setPending(false);
+              let alreadyRequested: boolean;
+              try {
+                ({ alreadyRequested } = await requestInvite({
+                  name: String(values.name),
+                  email,
+                  note: String(values.note ?? ''),
+                }));
+              } finally {
+                setPending(false);
+              }
               setSent({ email, alreadyRequested });
             }}
           >

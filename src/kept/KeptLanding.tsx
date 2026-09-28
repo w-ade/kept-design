@@ -20,7 +20,7 @@ export function KeptLanding() {
   return (
     <>
       <section className="KeptContents">
-        <h1 className="KeptDisplay KeptCol-hero">A library you can actually operate.</h1>
+        <h1 className="KeptDisplay KeptCol-hero">A working library for visual research.</h1>
       </section>
 
       <section className="KeptContents">

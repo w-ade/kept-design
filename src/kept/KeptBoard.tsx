@@ -4,13 +4,9 @@ import { Dialog } from '@base-ui/react/dialog';
 import {
   ArrowIcon,
   ImageFill,
-  formatDate,
-  fullImageStyle,
-  plural,
-  sourceLabel,
-  useDocumentTitle,
 } from './parts.tsx';
 import { getBoard, type Board, type Reference } from './repository.ts';
+import { formatDate, fullImageStyle, plural, sourceLabel, useDocumentTitle } from './utils.ts';
 
 // /m/:token: an unlisted, read-only moodboard. Board shell: no nav, no sign-in.
 export function KeptBoard({ token }: { token: string }) {

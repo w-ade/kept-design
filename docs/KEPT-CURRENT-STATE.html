@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KEPT — Current State Briefing</title>
+<style>
+  body { font: 16px/1.55 Georgia, "Times New Roman", serif; color: #111; background: #fff; max-width: 60rem; margin: 0 auto; padding: 2rem 1.25rem 6rem; }
+  h1 { font-size: 1.9rem; margin: 0 0 .25rem; }
+  h2 { font-size: 1.35rem; margin: 3rem 0 .5rem; padding-top: 1rem; border-top: 2px solid #111; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+  p, li { max-width: 52rem; }
+  code, pre { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .85rem; }
+  code { background: #f2f2f2; padding: 0 .25em; }
+  pre { background: #f6f6f6; border: 1px solid #ddd; padding: .75rem 1rem; overflow-x: auto; line-height: 1.4; }
+  table { border-collapse: collapse; width: 100%; margin: .75rem 0 1.25rem; font-size: .9rem; }
+  th, td { border: 1px solid #ccc; padding: .35rem .55rem; text-align: left; vertical-align: top; }
+  th { background: #f2f2f2; }
+  .meta { color: #555; font-size: .9rem; }
+  .note { border-left: 4px solid #111; padding: .25rem .9rem; margin: 1rem 0; background: #fafafa; }
+  .warn { border-left: 4px solid #b00020; padding: .25rem .9rem; margin: 1rem 0; background: #fff6f6; }
+  nav ol { columns: 2; font-size: .9rem; }
+  @media (max-width: 40rem) { nav ol { columns: 1; } }
+</style>
+</head>
+<body>
+
+<h1>KEPT — Current State Briefing</h1>
+<p class="meta">Written 2026-09-20 for another AI assistant. Sources: the repository at <code>~/Developer/Projects/kept-design</code> (branch <code>dashboard-and-roadmap-sync</code>, HEAD <code>0705c1b</code>), <code>docs/roadmap/roadmap.json</code>, the internal dashboard notes, and planning documents on the owner's Desktop (<code>kept-v0.html</code>, <code>kept-ui.html</code>, <code>kept-ios-stack.html</code>, <code>kept-design-checklist.html</code>, and three naming/brand word lists). Nothing was run against a live deployment or database; anything that depends on that is marked <em>Unknown / not verified</em>.</p>
+
+<div class="note">
+<strong>How to read this.</strong> "Current reality" means what the code in the repo does today. "Planned intent" means what the roadmap or a planning document says will happen. The two differ a lot: <strong>Kept today is a finished, fully mocked web front end. There is no backend, no Supabase code, no real auth, and no AI of any kind in the repo.</strong> Where an older description conflicts with the repo, the repo wins and the conflict is flagged.
+</div>
+
+<nav>
+<h3>Contents</h3>
+<ol>
+<li><a href="#s1">Executive summary</a></li>
+<li><a href="#s2">What changed</a></li>
+<li><a href="#s3">Product thesis</a></li>
+<li><a href="#s4">Primary user workflows</a></li>
+<li><a href="#s5">Information architecture</a></li>
+<li><a href="#s6">Core objects / data model</a></li>
+<li><a href="#s7">Current tech stack</a></li>
+<li><a href="#s8">Repository / codebase structure</a></li>
+<li><a href="#s9">UI / design system</a></li>
+<li><a href="#s10">Search</a></li>
+<li><a href="#s11">Annotation / metadata</a></li>
+<li><a href="#s12">AI / automation</a></li>
+<li><a href="#s13">Storage / file handling</a></li>
+<li><a href="#s14">Auth / security / privacy</a></li>
+<li><a href="#s15">Current features</a></li>
+<li><a href="#s16">Screens / routes</a></li>
+<li><a href="#s17">State of implementation</a></li>
+<li><a href="#s18">Technical debt / risks</a></li>
+<li><a href="#s19">Open questions</a></li>
+<li><a href="#s20">Decisions already made</a></li>
+<li><a href="#s21">Roadmap / next steps</a></li>
+<li><a href="#s22">Glossary</a></li>
+<li><a href="#s23">Final handoff summary</a></li>
+</ol>
+</nav>
+
+<!-- ============================================================ -->
+<h2 id="s1">1. Executive summary</h2>
+
+<h3>One sentence</h3>
+<p>Kept is an invite-only, single-owner library for collecting, annotating and retrieving visual references (images), that can publish a collection as an unlisted read-only "board".</p>
+
+<h3>One paragraph</h3>
+<p>Kept ("A library you can actually operate.") is a personal reference database. You upload images into named collections; each image becomes a <em>Reference</em> that carries a title, free-form notes, tags, numbered pins placed on the image with captions, and the file's facts (name, type, pixel size, bytes, source URL). You browse a collection as a grid or list, step through references with the keyboard, search across titles, notes, tags, source, file name and pin captions, and can publish any collection as an unlisted board at <code>/m/&lt;token&gt;</code> that anyone with the link can view without signing in. The product is deliberately quiet and typographic (a black-and-white look modeled on the base-ui.com homepage). Today it exists as a complete Vite + React web front end whose data layer is entirely mocked in the browser; the owner is about to connect it to Supabase and, in parallel, build a native iOS app.</p>
+
+<h3>Problem it solves</h3>
+<p>Stated in the repo README/plan: collecting visual references is easy, retrieving them later is not. The stated success measure is retrieval ("Retrieval is the measure of success" — earlier product principles). Kept is meant to be a structured system rather than a moodboard canvas or a pile of files.</p>
+
+<h3>Who it is for</h3>
+<ul>
+<li><strong>Current reality:</strong> one person — the owner (username <code>wade</code> in the mock). Accounts are "let in by hand"; there is a public "Request an invite" form, but requests only land in the requester's own browser (mock). Team/multi-user ACLs are explicitly out of scope for v0.</li>
+<li><strong>Intended:</strong> designers / visual thinkers who keep inspiration and reference images; the landing page says nothing more specific. Beyond "invite-only early development" the target audience and business model are <em>Unknown / not yet decided</em>.</li>
+</ul>
+
+<h3>What makes it different (as the project frames it)</h3>
+<ul>
+<li>It is a <strong>library you operate</strong> (a "Drive job" in the v0 spec's words: collections, references, inspector, search), with the Reference as the unit of meaning — not a canvas and not a social feed.</li>
+<li><strong>Sharing is a surface, not the home.</strong> Boards are a secondary, unlisted, read-only publishing feature.</li>
+<li><strong>Privacy and ownership by default</strong>: private storage, invite-only, planned two-factor required on every row (AAL2), no public gallery, no SEO index.</li>
+<li><strong>Deliberately plain UI</strong> (no filled buttons, one grey scale, one accent color used only for errors).</li>
+</ul>
+<p>Nothing in the repo yet demonstrates a technical differentiator (no OCR, no semantic search, no AI). Differentiation today is product framing and UI craft.</p>
+
+<h3>What Kept is NOT</h3>
+<ul>
+<li>Not a canvas-first moodboard tool (earlier README: "not just a canvas for temporarily arranging images").</li>
+<li>Not a public gallery or social network. No public board index, no discovery.</li>
+<li>Not a multi-user/team product in v0.</li>
+<li>Not currently a desktop app, and not (yet) a mobile app.</li>
+<li>Not an AI product today. No AI feature exists in code.</li>
+<li>Not a Next.js app, and not using shadcn/MUI/Tailwind (explicitly excluded in the v0 spec).</li>
+<li>Not a Capacitor/web-view wrapper on iOS — that plan was abandoned (see section 2).</li>
+</ul>
+
+<h3>Maturity / status</h3>
+<table>
+<tr><th>Layer</th><th>Status</th></tr>
+<tr><td>Web UI</td><td>Finished as a UI. All routes exist; declared pixel-identical to the <code>kept-ui</code> lab at 1440px and 390px, light and dark (commit <code>7e9ddba</code>, per the checklist and roadmap). Fully mocked data.</td></tr>
+<tr><td>Backend (Supabase)</td><td>Planned only. Zero backend code in the repo. 0 of the backend issues are started (roadmap: 2 of 72 issues done, both housekeeping).</td></tr>
+<tr><td>iOS app</td><td>Planned. Stack decision is contested (see 2, 19, 20). A wireframe set of 8 iOS screens exists in the internal dashboard. An Expo scaffold was reported on 2026-09-20 in <code>kept-ios-stack.html</code> at <code>apps/mobile/</code> as uncommitted; <strong>it is not present in the repo working tree now</strong> (Unknown whether deleted, moved or in another location).</td></tr>
+<tr><td>Production deployment</td><td>Vercel builds <code>main</code> (per README and <code>vercel.json</code>). Whether the live <code>kept.design</code> currently serves the new UI: <em>Unknown / not verified this session</em>. Note the current branch is 7 commits ahead of <code>main</code> (dashboard, iOS wireframes, oklab-squares collection, roadmap sync are not on <code>main</code>).</td></tr>
+<tr><td>Overall</td><td>Pre-alpha / "Early development" (the site header literally says this). Design-complete, data-incomplete.</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="s2">2. What changed</h2>
+
+<p>Git history (30 commits, 2026-09-04 to 2026-09-20) shows three eras.</p>
+<ol>
+<li><strong>Sep 4–5:</strong> a static "kept.design" landing with folder graphics, the display font Gen Interface JP, a wordmark artwork, an OG image. No product.</li>
+<li><strong>Sep 16–18:</strong> product direction written (README: "personal reference database", capture/index/annotate/organize/query/retrieve/connect); a <code>/map</code> "Reference System Map" page; a fixture-driven <code>/library</code> slice with three-pane chrome; a "canvas-first product brief" landing.</li>
+<li><strong>Sep 18–20:</strong> the product UI was designed in a separate lab repo (<code>kept-ui</code>), snapshotted into this repo, rebuilt on real paths, then a roadmap, a dashboard and the iOS pivot arrived.</li>
+</ol>
+
+<table>
+<tr><th>Area</th><th>Previous</th><th>Current</th><th>Why it changed</th></tr>
+<tr><td>Core concept</td><td>"Reference database" with a <strong>Connect</strong> action (relationships/graph between references); "canvas may be one view"; "local ownership matters"; product principles include explicit relationships.</td><td>A single-owner <strong>library you operate</strong> (collections, references, pins, search) plus <strong>unlisted shareable boards</strong>. Connect is deferred ("comes later"). Tagline "A library you can actually operate."</td><td>The v0 spec (<code>kept-v0.html</code>) chose to ship a minimal, real product on the existing site rather than the broad reference-system vision. "Do not start a second app."</td></tr>
+<tr><td>Framing of sharing</td><td>Not present.</td><td>Boards: "Moodboards are a share surface, not the home."</td><td>v0 spec.</td></tr>
+<tr><td>Data model</td><td>General "reference record" that could hold an asset <em>or external reference</em>, source info, metadata, relationships.</td><td>Reference (meaning) + Asset (file facts), one asset and one collection per reference in v0; Pin annotations; tags; notes; collection share. Captured URL recorded but only as text.</td><td>Narrowed to what v0 needs.</td></tr>
+<tr><td>Source of the UI</td><td>Hand-built fixtures in this repo (<code>src/data/repository.js</code>, <code>App.jsx</code>, <code>index.css</code> per the checklist).</td><td><code>src/kept/*</code> is a <strong>copy of the kept-ui lab</strong>, synced by <code>scripts/sync-kept-ui.mjs</code>; kept-ui was declared the source of truth.</td><td>UI was iterated in a lab first, then recreated here (KEPT-0, done).</td></tr>
+<tr><td>Design language</td><td>Gen Interface JP Display, folder graphics, accent <code>#FA586A</code>, "KEPT-DESIGN 1010 comp" (still visible in <code>src/config/site.js</code> as <code>accent</code>).</td><td>Geist Sans/Mono at weight 400; base-ui.com-style 8-column grid; grayscale tokens; one error accent ("poppy").</td><td>Deliberate "intentionally boring" Base UI direction.</td></tr>
+<tr><td>Landing copy</td><td>"Canvas-first product brief", folder labels.</td><td>Headline "A library you can actually operate." + Access, Fundamental actions, Project sections.</td><td>Aligned to v0.</td></tr>
+<tr><td><strong>iOS direction</strong></td><td><strong>Capacitor</strong>: wrap the Vite build in a WKWebView, staged (home-screen app → Capacitor shell → share extension). The <code>/ios</code> page still describes this.</td><td><strong>Native iOS rebuild is the main focus</strong>; roadmap D-6 records <strong>React Native</strong> as decided, D-8 <strong>Expo</strong> as decided. A Desktop analysis (<code>kept-ios-stack.html</code>) and dashboard note n3 argue for <strong>SwiftUI</strong>. Recorded decision and current intent are not reconciled.</td><td>The bar changed to "feels native like Phantom/Aave, not heavy wrapped slop"; a web view cannot hold 120fps on a 300-image grid or give interruptible gestures. Roadmap D-6 wording.</td></tr>
+<tr><td>Roadmap size</td><td>37 issues, backend only.</td><td>72 issues / 240 points / 12 phases, iOS interleaved (commit <code>5195d6a</code>).</td><td>iOS became a first-class track.</td></tr>
+<tr><td>Single source of truth for UI</td><td>"kept-ui is the source of truth" (AGENTS.md).</td><td>Only true for web. With two renderers, D-9 (decided: <code>tokens-package</code>) says colors/type/spacing/radii become shared data; Base UI cannot run on iOS.</td><td>iOS rebuild. <strong>AGENTS.md has not been updated</strong>.</td></tr>
+<tr><td>Storage / data</td><td>Fixtures.</td><td>Still browser-local mocks (localStorage, sessionStorage, IndexedDB) + static image files in <code>public/collections/</code>. Planned: Supabase Postgres + Storage.</td><td>—</td></tr>
+<tr><td>AI / automation</td><td>Never implemented; v0 spec lists OCR/pgvector as "out until later".</td><td>Still none.</td><td>—</td></tr>
+<tr><td>Project management</td><td>Planning pages living in the product SPA (<code>/map</code>, <code>/ios</code>, <code>/todo</code>).</td><td>A separate internal <strong>dashboard</strong> app (<code>dashboard/</code>, port 5174): Overview, Roadmap, Decisions, Screens (iOS wireframes), Notes, Bookmarks.</td><td>Stop planning content leaking into the product. The three SPA routes still ship to production (note n1) and are to be revisited.</td></tr>
+<tr><td>Roadmap repo copy</td><td>Was stale (37 issues).</td><td>Synced to 72 issues on 2026-09-20. The claude.ai artifact ("Kept Backend Roadmap") is still the editable source of truth, and its Overview page text is stale ("The UI is finished… no screen changes").</td><td>—</td></tr>
+</table>
+
+<h3>The new "big idea"</h3>
+<p>The single biggest new idea is the <strong>iOS capture path</strong>: a share extension so you can Share → Kept from Safari, Photos or Instagram (KEPT-57, "the single best reason for this app to exist"), with a persistent background upload queue (KEPT-59). The roadmap describes this as what "most changes how Kept is used day to day". It is planned, not built.</p>
+
+<h3>Removed / deprioritized</h3>
+<ul>
+<li>Capacitor wrapper and the <code>/ios</code> staging plan (dead, page not yet updated: KEPT-37).</li>
+<li>Connect / relationships between references, graph view, OCR, embeddings, R2 storage, Next.js, public board gallery, <code>/r/:referenceId</code> permalinks, OG preview cards: all "later" in the v0 spec.</li>
+<li><code>?r=</code> query selection of a reference: replaced by the path <code>/library/:collectionId/:referenceId</code>.</li>
+<li>Canvas-first product framing.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="s3">3. Product thesis</h2>
+
+<h3>Core idea</h3>
+<p>Collect visual references once, give them structure and personal meaning, and reliably find them again. From the v0 spec: <em>"You still operate a library (Drive job, Reference as the unit)."</em> Sharing a collection as a beautiful unlisted board is a side effect of having organized it, not the point.</p>
+
+<h3>Product principles (from earlier README; still the reference text)</h3>
+<ol>
+<li>Capture should be effortless; add structure progressively.</li>
+<li>Context is personal; the owner's interpretation is as valuable as source metadata.</li>
+<li>Structure should be layered (tags, collections, notes, later relationships).</li>
+<li>Retrieval is the measure of success.</li>
+<li>Relationships should be explicit (deferred).</li>
+<li>Local ownership matters (partly superseded by cloud Supabase storage; see Open Questions).</li>
+<li>The interface can be spatial without the product being canvas-first.</li>
+</ol>
+
+<h3>Design principles (from <code>kept-ui.html</code>)</h3>
+<ul>
+<li>"Strip things down before adding anything." Modeled on the base-ui.com homepage, not its docs.</li>
+<li>Plain text links, hairline-ruled lists, no filled buttons, sentence case, weight 400 everywhere.</li>
+<li>Only Base UI (<code>@base-ui/react</code>) for interactive primitives; layout in custom CSS.</li>
+<li>CSS-only motion in v0, honoring <code>prefers-reduced-motion</code>.</li>
+<li>Four shells only (Marketing, Auth, App, Board). "No dashboard layout."</li>
+</ul>
+
+<h3>Mental model</h3>
+<pre>You (username + password + 2FA, planned)
+ └─ Library
+     └─ Collection            (a named group; the tile on /library)
+         └─ Reference         (the unit of meaning: title, notes, tags, pins)
+             └─ Asset         (the file: name, type, pixel size, bytes)  1 per reference in v0
+         └─ Share             (optional: publishes the collection at /m/&lt;token&gt;)</pre>
+
+<h3>Primary workflow</h3>
+<p>Capture (upload images) → Index (title, tags) → Annotate (notes, pins) → Organize (collections) → Query (search) → Retrieve (grid/list/reference page) → Share (board). "Connect" is the seventh landing-page action but is not built.</p>
+
+<h3>Why not Pinterest, Raindrop, Photos, Finder, Dropbox, Notion, Eagle?</h3>
+<p class="note"><strong>Unknown / not written down.</strong> The repo and planning docs contain no explicit competitive comparison. What can be inferred from the docs: Kept positions itself as private, operable, structured, and image-first, with pins as on-image annotation and unlisted boards for sharing (vs. Pinterest's public discovery; vs. Finder/Dropbox's lack of per-image meaning; vs. Raindrop's link focus). Eagle is the closest analogue and is not mentioned anywhere. Treat this as an assumption.</p>
+
+<h3>Strongest differentiator</h3>
+<p>Today: the <strong>operable, private library with on-image pins</strong> and quiet UI. Planned: the <strong>iOS share-extension capture path</strong>. AI is not a differentiator (none exists).</p>
+
+<!-- ============================================================ -->
+<h2 id="s4">4. Primary user workflows</h2>
+<p>Status column reflects the <strong>web app with mock data</strong> unless noted.</p>
+
+<h3>4.1 Sign in</h3>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>Trigger</td><td>Visit <code>/login</code>, or hit a signed-in route without a session (auth gate redirects).</td></tr>
+<tr><td>Steps</td><td>Enter username (2–32 letters, numbers, dots, dashes, underscores) and password → "Continue ›".</td></tr>
+<tr><td>System behavior</td><td><code>signInWithPassword</code> waits 700 ms, compares to a hard-coded lab account map, stores a session object <code>{username, aal}</code> in <code>sessionStorage</code> (with an in-memory fallback). <strong>The lab account jumps straight to AAL2</strong>; the two-factor step is bypassed.</td></tr>
+<tr><td>Result</td><td>Session; navigates to library.</td></tr>
+<tr><td>Edge cases</td><td>Errors under fields: empty username/password, malformed username, "Username or password is incorrect." (clears on edit). No sign-up: page says invite-only and links to Request an invite. Blocked storage: in-memory session.</td></tr>
+<tr><td>Status</td><td>UI built; auth mocked. Real flow planned as Edge Function <code>sign-in</code> (username→email) + Supabase Auth + TOTP (KEPT-12/13/15). D-1 (how usernames sign in) is <strong>open</strong>.</td></tr>
+</table>
+
+<h3>4.2 Two-factor</h3>
+<p><code>/login/mfa</code> is a <strong>placeholder</strong>: a "Continue to library" button that calls <code>completeMfaForLab()</code>. The real screen (QR enrollment, six-digit code) must first be designed in kept-ui (KEPT-14, todo/backlog). A session at <code>aal1</code> is redirected here by the gate.</p>
+
+<h3>4.3 Request an invite</h3>
+<p>Public form at <code>/request</code>: Name (required), Email (required), "What would you keep?" (optional, ≤500 chars). Simulated 600 ms delay; dedupes by email in <em>the visitor's own localStorage</em>; shows "You're on the list." or "You're already on the list." <strong>The owner receives nothing</strong> today (KEPT-26/27 planned: <code>invite_requests</code> table + notification).</p>
+
+<h3>4.4 Create a collection</h3>
+<p>On <code>/library</code>: "New collection +" opens a dialog (Name ≤80 chars, Cancel, Create ›). Slug derived from name (lowercased, hyphenated, de-duplicated with <code>-2</code>, <code>-3</code>). Stored in localStorage key <code>kept.lab.created.v1</code>. The new tile fades in. Collections have a growing-textarea description ("What is this collection for?") saved in localStorage.</p>
+
+<h3>4.5 Upload / import images</h3>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>Trigger</td><td>"Add images +" on a collection page.</td></tr>
+<tr><td>Steps</td><td>Dialog → "Choose images" (multi-select phone picker) or drag-and-drop on desktop → per-file rows.</td></tr>
+<tr><td>System behavior</td><td><code>prepareUpload</code> decodes with EXIF orientation applied (<code>createImageBitmap</code> fallback to <code>Image</code>), redraws on a canvas to a <strong>1600px full</strong> and a <strong>480px thumbnail</strong> (JPEG quality 0.82) which strips all metadata (camera, location), then stores both Blobs plus facts in <strong>IndexedDB</strong> (<code>kept-lab</code> / <code>uploads</code>). One file at a time; status Waiting → Adding… → Added, or "Couldn't read this file"; "Adding 3 of 12…". Title defaults to the file name without extension.</td></tr>
+<tr><td>Result</td><td>New references at the top of the collection; collection <code>updatedAt</code> bumped.</td></tr>
+<tr><td>Edge cases</td><td>Recognized types HEIC/HEIF/AVIF/WebP/GIF/PNG/JPEG by MIME, else extension ≤5 chars, else "Image" (whether the browser can decode HEIC is browser dependent; <em>Unknown</em>). One failure does not stop the batch. Uploads exist only in that browser profile.</td></tr>
+<tr><td>Status</td><td>Works (mock, device-local). Real: Supabase Storage (KEPT-21). No dedupe, no size limit in the client (planned bucket limit 10 MB, KEPT-10).</td></tr>
+</table>
+
+<h3>4.6 Browse a collection</h3>
+<p><code>/library/:collectionId</code>: back link "‹ Library", title, "N references. Updated …", Share line, description, then a <code>ReferenceBrowser</code> with Grid/List toggle (choice remembered in localStorage <code>kept.lab.view</code>) and a search field. Grid tile: square image, title, source site, black pin-count badge. List row: small square, title, source, file type from 48rem. Empty: "Nothing kept here yet."; no-match: "No references match “…”." <strong>Built.</strong></p>
+
+<h3>4.7 Inspect / annotate one reference</h3>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>Trigger</td><td>Open <code>/library/:collectionId/:referenceId</code>.</td></tr>
+<tr><td>Steps</td><td>Large image; tap/click to drop a numbered pin (keyboard activation drops one at the center and focuses the caption); edit notes; add tags (Enter, comma or blur adds; duplicates ignored case-insensitively; × removes); edit or remove pin captions; hovering a pin row highlights the marker.</td></tr>
+<tr><td>Keyboard</td><td>← / → step through the collection, Esc returns to the collection, never while typing.</td></tr>
+<tr><td>System behavior</td><td>Edits saved via <code>updateReference</code> into <code>localStorage</code> key <code>kept.lab.edits.v1</code> keyed by reference id. Pin x/y normalized 0–1.</td></tr>
+<tr><td>File panel</td><td>Name, Type, Pixel size, Size, Added, Source; blank shows an empty state.</td></tr>
+<tr><td>Not built</td><td>Box annotations (drag rectangles), renaming a reference's title (imported ones are "No. 001" etc.; uploads use the file name).</td></tr>
+<tr><td>Status</td><td>Built (mock persistence).</td></tr>
+</table>
+
+<h3>4.8 Search and "All references"</h3>
+<p>See section 10. <code>/library</code> also has an "All references" section (Grid/List + search) that shows every reference across collections with the collection name as the second line.</p>
+
+<h3>4.9 Publish a collection as a board</h3>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>Steps</td><td>Collection page Share line "Not shared. Share as a board ›" → dialog → Publish ›. Published state shows the link, Copy (→ "Copied"; falls back on plain http), publish date, "New link" (rotates the token; old link dies immediately), "Unpublish" (poppy), "Open board ›", Done. Bottom sheet on phones, centered from 48rem.</td></tr>
+<tr><td>System behavior</td><td>10-character base-36 token from <code>crypto.getRandomValues</code>; stored in localStorage <code>kept.lab.shares.v2</code>, keyed by collection id. One seeded share: <code>moode-matcha</code> → token <code>mm7q2x9kfa</code> (publishedAt 2026-09-18). Links are <code>/m/&lt;token&gt;</code> on the current origin.</td></tr>
+<tr><td>Edge cases</td><td>Because shares live in the owner's browser, <strong>a copied link works only in a browser that has that localStorage</strong> (i.e. it does not truly work for outside viewers today). A real backend is required (KEPT-23/24).</td></tr>
+</table>
+
+<h3>4.10 View a board (anyone with the link)</h3>
+<p><code>/m/:token</code>: no header, no nav, no sign-in. Shows the collection name, "Kept by wade · N references · Published …", the description (line breaks preserved), a full-bleed grid (2/3/4/5 across) and a lightbox with arrow-key navigation. Invalid or unpublished token → error state on the same route. Footer: "Made with KEPT, a library you can actually operate." <strong>Built (mock).</strong></p>
+
+<h3>4.11 Flows that do not exist</h3>
+<ul>
+<li><strong>Import many assets from URLs / paste a link:</strong> only listed as a suggestion on <code>/todo</code> ("Paste a link to keep it"). Each reference has <code>captureUrl</code> but no UI creates a captured reference; imported/uploaded ones are <code>null</code> (the Source field shows an empty state).</li>
+<li><strong>PDFs:</strong> not supported anywhere (image-only). <em>No plan found.</em></li>
+<li><strong>Batch organize (multi-select, move):</strong> only a suggestion.</li>
+<li><strong>AI-assisted annotation:</strong> none.</li>
+<li><strong>Export / sharing beyond boards:</strong> Export appears only as a "will live here" row in Settings.</li>
+<li><strong>Mobile/iOS capture:</strong> planned (share extension, camera/photo import, upload queue), not built.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="s5">5. Information architecture</h2>
+
+<pre>Kept (web, Vite SPA, real paths)
+├── Marketing shell
+│   ├── /                    Landing
+│   ├── /map                 System map            (internal planning content, ships to prod)
+│   └── /ios                 Kept on iOS           (STALE Capacitor plan, ships to prod)
+├── Auth shell
+│   ├── /login               Sign in (username + password)
+│   ├── /login/mfa           Two-factor            (placeholder)
+│   └── /request             Request an invite
+├── App shell (gated: no session → /login; aal1 → /login/mfa)
+│   ├── /library                              Collections tiles + "All references"
+│   │   ├── New collection            (dialog)
+│   │   └── /library/:collectionId            Collection (ReferenceBrowser, description, Share line)
+│   │       ├── Add images            (dialog: picker / drag-drop / progress rows)
+│   │       ├── Share                 (dialog: publish, copy, new link, unpublish)
+│   │       └── /library/:collectionId/:referenceId   Reference (image + pins, notes, tags, file facts)
+│   ├── /todo                To do (next steps, suggestions, personal tasks)
+│   ├── /settings            Settings   ("Coming soon")
+│   ├── /referral            Referral   ("Coming soon")
+│   └── Account menu (under username): To do · Appearance (Light/Dark/Match system) · Settings · Referral · Sign out
+└── Board shell (public, no chrome)
+    └── /m/:token            Board + lightbox
+
+Dashboard (separate internal app, dashboard/, port 5174, planned as its own Vercel project with Vercel Authentication)
+├── Overview  ├── Roadmap  ├── Decisions  ├── Screens (iOS wireframes)  ├── Notes  └── Bookmarks</pre>
+
+<p><strong>Navigation.</strong> Marketing nav: Landing, Library, Map. Auth nav: Landing only. App nav: Library, Map, and the username (opens a Base UI Menu). Site header always shows "Early development" from 64rem. Footer "© Kept".</p>
+<p><strong>Search/filter structure.</strong> Per-page inline search fields (collections on <code>/library</code>; references on collection page and "All references"). No global search or command palette (planned, KEPT-34). No filters beyond text; no saved searches.</p>
+<p><strong>Dialogs (not pages):</strong> Create collection, Add images, Share/publish. v0 spec also lists account/MFA settings and command-palette as dialogs; not built.</p>
+<p><strong>Settings.</strong> Placeholder page listing planned content: Account, Two-factor, Appearance (already works from the menu), Boards, Export, Delete account.</p>
+<p><strong>Object hierarchy for URLs.</strong> Collection ids are slugs; imported reference ids are <code>&lt;collection&gt;-&lt;file basename&gt;</code> (e.g. <code>moode-matcha-001</code>); uploaded reference ids are <code>&lt;collectionId&gt;-u&lt;base36 timestamp&gt;&lt;index&gt;</code>.</p>
+
+<h3>Planned native iOS IA (wireframes only)</h3>
+<p>Eight skeleton iOS screens exist as wireframes in the dashboard (<code>dashboard/src/screens.ts</code>, iPhone 17 Pro frame 402×874 pt): Library, Collection, Reference, Capture, Sign in, Request, Account, Board. Tab bar names in the wireframe: Library, Capture, Account. These are grey skeletons with HIG-derived notes (large-title nav bar 96 pt, UISearchController, 44 pt minimum targets), not designs.</p>
+
+<!-- ============================================================ -->
+<h2 id="s6">6. Core objects / data model</h2>
+
+<div class="warn"><strong>No database exists.</strong> Everything below under "Current (TypeScript / browser)" is real; the "Planned (Postgres)" schema is a design sketch inside roadmap issue KEPT-8, not a migration file. The <code>supabase/</code> directory does not exist.</div>
+
+<h3>6.1 Current TypeScript types (<code>src/kept/repository.ts</code>)</h3>
+<pre>interface Collection {
+  id: string;                 // slug, e.g. "moode-matcha"
+  name: string;
+  referenceCount: number;     // derived
+  updatedAt: string;          // ISO date (YYYY-MM-DD)
+  description: string;
+  covers?: string[];          // thumbnail URLs of first 4 refs, for the mosaic
+}
+interface Pin { id: string; x: number; y: number; caption: string }  // x,y normalized 0-1
+interface Reference {
+  id: string; collectionId: string; title: string;
+  notes: string; tags: string[]; pins: Pin[];
+  addedAt: string;
+  captureUrl: string | null;  // where captured from; null = uploaded from disk
+  fileName: string; fileType: string; width: number; height: number; bytes: number;
+  imageUrl?: string; thumbUrl?: string;
+}
+interface Share { token: string; owner: string; publishedAt: string }
+interface Board { collection: Collection; references: Reference[]; share: Share }
+interface InviteRequest { name: string; email: string; note: string; requestedAt: string }
+interface KeptSession { username: string; aal: 'aal1' | 'aal2' }   // session.ts</pre>
+<p>The comment in code: "A Reference is the unit of meaning; its file (the Asset) carries the file facts. v0 has one asset per reference." There is <strong>no separate <code>Asset</code> or <code>Tag</code> or <code>Note</code> type</strong> in code; those are flattened into <code>Reference</code>. Notes are one text field, tags a string array.</p>
+
+<h3>6.2 Object table (current reality)</h3>
+<table>
+<tr><th>Object</th><th>Purpose</th><th>Created by</th><th>Where it lives today</th><th>Lifecycle</th></tr>
+<tr><td>User / session</td><td>Owner identity</td><td>Hard-coded lab account map</td><td><code>sessionStorage</code> key <code>kept.lab.session</code> (+ memory)</td><td>Until tab/session ends or Sign out</td></tr>
+<tr><td>Collection</td><td>Named group</td><td>User (created) or code (2 imported)</td><td>Created ones: <code>localStorage kept.lab.created.v1</code>; description edits: <code>kept.lab.edits.v1</code>; imported ones: hard-coded map <code>IMPORTED</code></td><td>Create, edit description. <strong>No rename, no delete.</strong></td></tr>
+<tr><td>Reference (imported)</td><td>A kept image</td><td>Build-time import script</td><td>Static files <code>public/collections/&lt;id&gt;/{full,thumb}/NNN.jpg</code> + JSON manifests <code>src/kept/data/*.json</code></td><td>Read-only file; notes/tags/pins overlay in localStorage. Titles are generated "No. 001".</td></tr>
+<tr><td>Reference (uploaded)</td><td>A kept image</td><td>User</td><td>IndexedDB store <code>uploads</code> (Blobs) + localStorage overlay</td><td>Created by upload; <strong>no delete, no move</strong>.</td></tr>
+<tr><td>Asset (file facts)</td><td>File name, type, w×h, bytes</td><td>System (at import/upload)</td><td>Fields on <code>Reference</code></td><td>Immutable</td></tr>
+<tr><td>Tag</td><td>Free label</td><td>User</td><td>String array on Reference</td><td>Add/remove; no global tag list or counts</td></tr>
+<tr><td>Note</td><td>Free text</td><td>User</td><td><code>Reference.notes</code></td><td>Edited in place</td></tr>
+<tr><td>Pin (annotation)</td><td>Numbered on-image marker with caption</td><td>User</td><td><code>Reference.pins</code></td><td>Add, edit caption, remove</td></tr>
+<tr><td>Share</td><td>Publishes a collection</td><td>User</td><td><code>localStorage kept.lab.shares.v2</code></td><td>Publish, rotate token, unpublish</td></tr>
+<tr><td>InviteRequest</td><td>Access request</td><td>Visitor</td><td>Visitor's <code>localStorage kept.lab.requests.v1</code></td><td>Create only</td></tr>
+<tr><td>To-do state</td><td>Checked items and own tasks on <code>/todo</code></td><td>User</td><td><code>localStorage kept.lab.todo.v1</code></td><td>—</td></tr>
+<tr><td>Prefs</td><td>Grid/list view; theme</td><td>User</td><td><code>kept.lab.view</code>, <code>kept.lab.theme</code></td><td>—</td></tr>
+</table>
+<p>Not present anywhere: Folder, Project, Source (as an entity), Import (as an entity), Search query, AI-generated metadata, Embedding, OCR result, Box annotation, Connection/relationship.</p>
+
+<h3>6.3 Planned Postgres schema (roadmap KEPT-8, verbatim shape)</h3>
+<pre>profiles      id uuid pk → auth.users · username citext unique (2–32 [a-z0-9._-])
+collections   id uuid pk · owner_id · slug text · name text (≤80) · description text
+              created_at · updated_at · unique (owner_id, slug)
+refs          id uuid pk · public_id text unique · owner_id · collection_id → collections
+              title · notes · capture_url (null = uploaded) · added_at · updated_at
+              search tsvector generated
+assets        id uuid pk · ref_id → refs (cascade) · owner_id · path_full · path_thumb
+              file_name · file_type · width · height · bytes
+tags          id uuid pk · owner_id · name citext · unique (owner_id, name)
+ref_tags      ref_id → refs · tag_id → tags · pk (ref_id, tag_id)
+annotations   id uuid pk · ref_id → refs (cascade) · owner_id · kind ('pin'|'box')
+              x · y · w · h (null for pins) · caption · position int
+collection_shares  collection_id pk → collections (cascade) · token text unique
+                   published_at · rotated_at
+invite_requests    id uuid pk · name · email citext unique · note (≤500)
+                   requested_at · status ('waiting'|'invited'|'declined')</pre>
+<ul>
+<li><code>references</code> is a reserved word, so the table is <code>refs</code>.</li>
+<li>v0: one asset and one collection per reference (so <code>refs.collection_id</code> is a plain FK, not a join table).</li>
+<li>The v0 spec also listed a separate <code>notes</code> table; the roadmap collapses notes into <code>refs.notes</code>. The roadmap is more recent.</li>
+<li>Planned RPCs: <code>create_collection</code>, <code>set_reference_tags</code>, <code>set_reference_pins</code>, <code>create_ref</code>, token RPCs for shares, <code>request_invite</code> (anon), Edge Functions <code>sign-in</code> and <code>board</code>.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="s7">7. Current tech stack</h2>
+<table>
+<tr><th>Technology</th><th>Role in Kept</th><th>Status</th><th>Alternatives considered</th></tr>
+<tr><td>Vite 8.3 + React 19.3 + TypeScript ~6.0 (strict via <code>tsc</code>)</td><td>Web SPA</td><td>In use</td><td>Next.js, Remix, TanStack Start, Vue/Svelte/Solid were explicitly excluded in the v0 spec (Base UI is React-only; no SSR needed for unlisted boards).</td></tr>
+<tr><td><code>@base-ui/react</code> ^1.8.0</td><td>All interactive primitives: Button, Field, Input, Dialog, Menu, Checkbox, Toggle, ToggleGroup, etc.</td><td>In use</td><td>shadcn, MUI: excluded. Note: Base UI is DOM-only and does not run on iOS.</td></tr>
+<tr><td>Plain CSS (<code>kept.css</code> 1,412 lines, <code>tokens.css</code>, <code>inputs.css</code>)</td><td>Styling</td><td>In use</td><td>Tailwind excluded in v0 spec.</td></tr>
+<tr><td>Geist / Geist Mono (<code>@fontsource-variable/*</code>)</td><td>Typography</td><td>In use</td><td>Earlier Gen Interface JP Display (retired).</td></tr>
+<tr><td><code>@guideframe/react</code> ^0.2.0-beta.2</td><td>Dev-only 8-column grid overlay (Cmd/Ctrl+G)</td><td>Dev only, not in prod builds</td><td>—</td></tr>
+<tr><td>Browser storage (localStorage, sessionStorage, IndexedDB)</td><td>Entire mock data layer</td><td>In use (temporary)</td><td>Supabase (planned).</td></tr>
+<tr><td>Supabase (Postgres, Auth, Storage, Edge Functions)</td><td>Planned backend: RLS on owner + AAL2, private bucket <code>kept-assets</code>, Edge Functions <code>sign-in</code> and <code>board</code></td><td><strong>Planned. No package, client, migration or env file in repo.</strong></td><td>R2 for images "if Storage costs bite" (KEPT-36). Where to provision (Vercel Marketplace vs supabase.com): D-3 open.</td></tr>
+<tr><td>Vercel</td><td>Static hosting; <code>vercel.json</code>: framework vite, build <code>npm run build</code>, output <code>dist</code>, SPA rewrite <code>/(.*)</code> → <code>/index.html</code>. Pushing <code>main</code> deploys production.</td><td>In use (live state unverified)</td><td>—</td></tr>
+<tr><td>Search</td><td>Client-side substring filtering over loaded arrays</td><td>In use</td><td>Postgres FTS (<code>tsvector</code>) planned but deferred (KEPT-34); pgvector "later".</td></tr>
+<tr><td>Embeddings, OCR, AI providers/models, background jobs</td><td>—</td><td><strong>None. Not in code or roadmap for v0.</strong></td><td>—</td></tr>
+<tr><td>Analytics</td><td>—</td><td>None found</td><td>—</td></tr>
+<tr><td>Image handling</td><td>Canvas resize on device to 1600/480 JPEG; EXIF orientation applied via <code>createImageBitmap</code>; metadata stripped</td><td>In use</td><td>Server transforms not needed (KEPT-10 note).</td></tr>
+<tr><td>Expo (SDK 57 per Desktop doc), React Native 0.8x, Reanimated 4, Gesture Handler, expo-image, expo-secure-store, EAS</td><td>Planned native iOS stack (D-6, D-8, D-10)</td><td>Planned; contested</td><td>Bare React Native, native SwiftUI, Capacitor (rejected).</td></tr>
+<tr><td>Dashboard (own Vite app: React 19, Vite 8, <code>@types/node</code>; custom Vite plugin <code>bookmarks-plugin.ts</code>)</td><td>Internal PM tool</td><td>In use locally; deployment planned as separate Vercel project with Vercel Authentication</td><td>Linear-style roadmap was first a claude.ai artifact.</td></tr>
+<tr><td>Local dev</td><td><code>npm install</code>, <code>npm run dev</code> (5173, exposed on LAN, <code>allowedHosts: true</code>), <code>npm run build</code> (= <code>tsc &amp;&amp; vite build</code>), <code>npm run sync-kept-ui</code>, <code>node scripts/roadmap.mjs</code></td><td>Works</td><td>The lab README used pnpm; memory of an older setup used pnpm 9. This repo uses npm.</td></tr>
+</table>
+<p>Only five runtime dependencies: <code>@base-ui/react</code>, two Geist font packages, <code>react</code>, <code>react-dom</code>.</p>
+
+<!-- ============================================================ -->
+<h2 id="s8">8. Repository / codebase structure</h2>
+<p>Repo: <code>usekept/kept-design</code> on GitHub (public). Package name <code>kept-design</code>, version 0.0.1, private. Remotes also include a <code>wade</code> remote and legacy <code>w-ade/kept-design</code> URLs appear in older docs. Branches: <code>main</code>, <code>dashboard-and-roadmap-sync</code> (current, +7 commits vs main), <code>cursor/*</code> branches (older AI-agent branches), <code>wordmark-and-palette</code>.</p>
+
+<pre>kept-design/
+├── AGENTS.md                 agent rules (partly STALE, see below)
+├── README.md
+├── index.html, vite.config.js, vercel.json, tsconfig.json, package.json
+├── public/
+│   ├── collections/          moode-matcha (160 full+thumb), oklab-squares (5)  — 330 files TRACKED in git
+│   ├── favicon.svg, og.png, "KEPT WORDMARK.svg"
+├── scripts/
+│   ├── sync-kept-ui.mjs      copies src/kept from ../../Labs/kept-ui, rewrites #/kept/ hash routes to paths
+│   └── roadmap.mjs           generates ROADMAP.md + index.html from roadmap.json
+├── docs/roadmap/
+│   ├── roadmap.json          authoritative copy (72 issues, 12 phases, 10 decisions)
+│   ├── ROADMAP.md, index.html, tracker.html   generated / older tracker
+├── src/
+│   ├── main.tsx, App.tsx     path-based routing via useSyncExternalStore
+│   ├── config/site.js        name, description, accent #FA586A (legacy; only title/description used by vite.config.js)
+│   ├── dev/KeptGuideframe.tsx
+│   └── kept/                 the product (synced from kept-ui unless noted)
+│       ├── KeptApp.tsx       shells, routing table, auth gate
+│       ├── Kept{Landing,Login,Request,Library,Collection,Reference,Board,Share,Upload,Map,Ios,Todo,AccountMenu,AccountPages}.tsx
+│       ├── ReferenceBrowser.tsx  grid/list + search shared component
+│       ├── parts.tsx         shared icons/helpers
+│       ├── repository.ts     MOCK data layer (457 lines)
+│       ├── session.ts        MOCK auth (60 lines)
+│       ├── uploads.ts        IndexedDB + canvas resize (135 lines)
+│       ├── theme.ts, href.ts
+│       ├── kept.css (1,412), tokens.css*, inputs.css*  (* = exist only in kept-design)
+│       ├── navigate.ts*      history navigation
+│       └── data/moode-matcha.json, oklab-squares.json   image manifests
+└── dashboard/                separate Vite app (own package.json/node_modules)
+    ├── data/notes.json, bookmarks.json
+    ├── bookmarks-plugin.ts   dev-only add/remove endpoint
+    └── src/{App,data,types,screens}.ts(x), views/{Overview,Roadmap,Decisions,Screens,Notes,Bookmarks}.tsx, styles.css</pre>
+
+<h3>Things that do not exist</h3>
+<p>No <code>api/</code> or server routes, no <code>supabase/</code> or migrations, no tests (no test runner or files), no <code>.env.example</code> (referenced by <code>.gitignore</code> pattern only), no CI config, no Storybook, no <code>apps/mobile</code>.</p>
+
+<h3>Legacy, drift and cleanup areas (documented, not fixed)</h3>
+<ul>
+<li><strong>Synced files are overwritten.</strong> <code>scripts/sync-kept-ui.mjs</code> copies every file in kept-ui's <code>src/kept</code> over this repo, including <code>repository.ts</code>, <code>session.ts</code> and <code>uploads.ts</code>. Once real Supabase code goes into those, the next sync would destroy it (KEPT-6 "Stop the sync script from overwriting the data layer" is <em>todo</em>; D-4 gating it is open). The AGENTS.md rule "never edit synced Kept*.tsx or kept.css" exists for this reason.</li>
+<li><strong><code>/ios</code> page (<code>KeptIos.tsx</code>) is stale in four ways:</strong> describes Capacitor, uses pnpm commands, references <code>kept-ui.vercel.app</code>, and contains a LAN IP with port for live-reload in a <strong>public</strong> repo. Ships to production. KEPT-37.</li>
+<li><strong><code>/map</code> and <code>/todo</code></strong> are internal planning content in the product SPA (dashboard note n1). Their content partly duplicates the roadmap (e.g. <code>/todo</code> NEXT_STEPS vs roadmap issues). <code>/todo</code> data is hard-coded.</li>
+<li><strong>README says collection images are "git-ignored until the backend serves them"; they are actually tracked (330 files) and <code>.gitignore</code> does not ignore them.</strong> D-5 (remove after seeding to Storage) is open.</li>
+<li><code>repository.ts</code> comments reference <code>scripts/import-images.py</code> and the "kept-v0.html" file; the Python script is <strong>not in this repo</strong> (Unknown where it lives; probably in kept-ui).</li>
+<li><code>src/config/site.js</code> has <code>status: ""</code> and a legacy pink accent <code>#FA586A</code> that the current UI does not use.</li>
+<li><code>KeptApp.tsx</code> has an empty <code>COMING_NEXT</code> record and a <code>KeptComingNext</code> fallback used as the 404 ("Not found / Not built in the lab yet.").</li>
+<li><code>docs/roadmap/tracker.html</code> is an older tracker alongside the generated <code>index.html</code>.</li>
+<li><code>.delta/</code> contains four clone/worktree folders (agent tooling, not product).</li>
+<li>Duplicated planning surfaces: roadmap exists as (a) claude.ai artifact, (b) <code>roadmap.json</code>/<code>ROADMAP.md</code>/<code>index.html</code>, (c) the dashboard views. Only <code>roadmap.json</code> is "read" by the dashboard.</li>
+<li><strong>AGENTS.md is stale</strong>: still says "until PR #4 is merged (KEPT-1), the current UI lives on <code>cursor/snapshot-kept-ui-a2a8</code>" although KEPT-1 is done and merged; still says kept-ui is the single source of truth; and says the next job is Supabase without mentioning iOS.</li>
+<li>No TODO/FIXME/HACK comments found in <code>src/</code> or <code>scripts/</code>.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="s9">9. UI / design system</h2>
+<p>Source: <code>kept-ui.html</code> (the lab's UI spec), <code>tokens.css</code>, <code>kept.css</code>.</p>
+<table>
+<tr><th>Aspect</th><th>Current direction</th></tr>
+<tr><td>Character</td><td>Quiet, typographic, ruled. Modeled on the base-ui.com homepage: one grid, labels in the left gutter, hairline lists, text links instead of buttons. "Strip things down before adding anything." The owner's memory notes describe this as "intentionally boring" b/w Base UI.</td></tr>
+<tr><td>Layout</td><td>8-column grid; gap 2.5rem (3rem from 48rem); max width 1480px; page padding 1.5rem (sides 3rem from 48rem). Sections use <code>display: contents</code> so children sit on the page grid. Columns: label 1–3, body 3–9 (3–7 from 80rem), wide 3–9 from 64rem, hero 1–5 from 80rem. Breakpoints 48/64/80rem, mobile first.</td></tr>
+<tr><td>Type</td><td>Geist Sans, weight 400 throughout; only the KEPT wordmark is bold. Small 15/22; body 18/25; display 34/34 then 42/44 from 48rem. Sentence case. Geist Mono where code shows.</td></tr>
+<tr><td>Color</td><td>Tokens from Base UI docs: page bg <code>gray-s1</code>, text and rules <code>gray-t2</code>, muted <code>gray-t1</code>, placeholder <code>gray-p1</code>, placeholder images <code>gray-c1</code>. Errors and destructive actions: <code>poppy-t1</code>. "No other accent color." Light/dark follow system; a theme switch in the account menu sets <code>data-theme</code> on <code>&lt;html&gt;</code> and the browser toolbar color.</td></tr>
+<tr><td>Rules and lists</td><td>Ruled rows (1px rule above list and below each row, 12px vertical padding, two columns); 32px hairline separators; ruled form fields (label above input on phone, beside from 48rem; focused field thickens its rule instead of a box).</td></tr>
+<tr><td>Links/buttons</td><td>Underlined text links (1px, 4px offset), hover removes underline, press inverts. Arrow links are the main CTA (caret slides 4px, shaft appears). Buttons are Base UI Buttons styled as text links; <strong>no filled or outlined buttons</strong>. Navigation is always a plain <code>&lt;a&gt;</code>. Exception: <code>inputs.css</code> gives Sign in and Request an invite outlined "boxed" inputs (intentional difference from kept-ui, keyed off <code>data-kept-route</code>).</td></tr>
+<tr><td>Images</td><td>Gray placeholder squares; square tiles; 2×2 mosaic for collection tiles (filled squares per reference up to four, outlined empties). Board grid 2/3/4/5 across; a lightbox with keyboard nav. Pins are numbered black markers; grid tiles show a black pin-count badge.</td></tr>
+<tr><td>Motion</td><td>CSS only via Base UI <code>data-starting-style</code>/<code>data-ending-style</code>: fades and small slides, 100–300 ms ease-out. No Motion library in v0. <code>prefers-reduced-motion</code> disables arrow slide, pin drop, new-collection fade and dialog slide.</td></tr>
+<tr><td>Focus</td><td>2px outline in current text color, 2px offset.</td></tr>
+<tr><td>Shells</td><td>Marketing, Auth, App, Board — no dashboard layout.</td></tr>
+<tr><td>Selection / inspectors / drag</td><td>No multi-select. The "inspector" is the Reference page's stacked ruled sections rather than a side panel (v0 spec described three-pane chrome; the shipped kept-ui UI is single-column ruled). Drag and drop only for upload. Keyboard: ← → Esc on Reference, arrows in board lightbox.</td></tr>
+<tr><td>Empty/loading/error states</td><td>"Nothing kept here yet."; "No collections match “…”."; form errors in poppy; upload row states; invalid/unpublished board error state. Loading states: Unknown / minimal (data resolves after IndexedDB read).</td></tr>
+<tr><td>Dev tools</td><td>GuideFrame overlay (Cmd/Ctrl+G), 8-column grid with rulers and guides. Not in production builds.</td></tr>
+<tr><td>Mobile/desktop priority</td><td>Mobile-first CSS; parity checked at 1440px and 390px. Bottom sheet dialogs on phones.</td></tr>
+<tr><td>Design references named in project</td><td>base-ui.com homepage; "Phantom" and "Aave" (feel bar for iOS); <code>expo-motion-tabs</code> (rit3zh) for iOS tab-bar motion (dashboard note n4; showcase repo, not an npm package, requires Expo 55 / RN 0.83 / Reanimated 4); Apple HIG.</td></tr>
+<tr><td>Design files</td><td>No Figma link found in the repo. Owner's memory says a Figma reference-recreation workflow exists in general; <em>Unknown</em> whether any Kept Figma file exists. Desktop docs: <code>kept-ui.html</code>, <code>kept-design-checklist.html</code>.</td></tr>
+</table>
+<p><strong>iOS design system direction:</strong> D-9 (decided) — <code>tokens.json</code> as the shared layer generating CSS custom properties for web and a typed object for native; kept-ui remains source for web layout. Not implemented (KEPT-41). The dashboard's Screens tab documents 8 wireframes with rules such as one shared spring config and interruptible gestures.</p>
+
+<!-- ============================================================ -->
+<h2 id="s10">10. Search</h2>
+<h3>Current implementation</h3>
+<ul>
+<li><strong>Client-side substring filter</strong> in <code>ReferenceBrowser</code> over the already-loaded reference list. Roadmap KEPT-22: "instant at this size" (160 references).</li>
+<li>Verified in <code>ReferenceBrowser.tsx</code>: the query is lowercased and matched as a substring against title, the second-line meta (source site or collection name), source label, file name, notes, every tag, and every pin caption, joined into one string. Any-order multi-word queries are not supported (whole query must appear as one substring).</li>
+<li>Collection search on <code>/library</code> filters tiles by name ("No collections match “…”").</li>
+<li>"All references" search spans every collection.</li>
+</ul>
+<h3>Not present</h3>
+<p>Ranking, typo tolerance, saved searches, filters (by tag, date, type), OCR text, semantic search, visual similarity, embeddings, a global command palette. None exist in code.</p>
+<h3>Planned</h3>
+<ul>
+<li>KEPT-34 (later, 5 pts): server-side search and command palette (Base UI Combobox). Groundwork: a generated <code>search tsvector</code> column on <code>refs</code>.</li>
+<li>v0 spec: "one SQL function over reference title/description/notes/tags/annotation captions"; "No OCR, no embeddings yet". Explicitly out until later: OCR, pgvector.</li>
+<li>KEPT-52: on-device search on iOS (backlog).</li>
+<li><code>/todo</code> suggestions (not committed): color palettes and filter by color, smart collections (saved searches), duplicate detection, keyboard-first ("/ to search, J/K").</li>
+</ul>
+<h3>Known limitations</h3>
+<p>Search only sees data loaded in the browser; will not scale beyond a library that fits in memory; not accent/case-tuned beyond simple substring (Unknown).</p>
+
+<!-- ============================================================ -->
+<h2 id="s11">11. Annotation / metadata system</h2>
+<table>
+<tr><th>Element</th><th>What it is today</th><th>Source</th><th>Status</th></tr>
+<tr><td>Title</td><td>Imported: generated "No. 001…". Uploaded: file name. <strong>Not editable yet</strong> (KEPT-33 later).</td><td>System</td><td>Built (read-only)</td></tr>
+<tr><td>Notes</td><td>One free-text field per reference, auto-growing textarea.</td><td>User</td><td>Built (localStorage)</td></tr>
+<tr><td>Tags</td><td>String array; pill chips; Enter/comma/blur to add; case-insensitive duplicate guard; no autocomplete, no global tag index. (v0 spec planned Combobox chips.)</td><td>User</td><td>Built (localStorage)</td></tr>
+<tr><td>Pins</td><td>Numbered marker at normalized (x,y) with a caption; list synced with image (hover highlights); keyboard drop at center.</td><td>User</td><td>Built (localStorage)</td></tr>
+<tr><td>Boxes</td><td>Drag-drawn rectangles alongside pins (schema has <code>kind 'box'</code>, <code>w</code>, <code>h</code>).</td><td>User</td><td>Planned: KEPT-32 (later, 5 pts). Needs kept-ui design first.</td></tr>
+<tr><td>File facts</td><td>Name, type, pixel size, bytes, added date, source. Read-only.</td><td>System</td><td>Built</td></tr>
+<tr><td>Source URL</td><td><code>captureUrl</code>; displayed as a source site label. No UI creates a captured reference.</td><td>System/User</td><td>Field exists; capture flow not built (planned: iOS share extension sets it)</td></tr>
+<tr><td>Description (of collection)</td><td>Growing textarea.</td><td>User</td><td>Built (localStorage)</td></tr>
+<tr><td>Keywords/descriptions/OCR/confidence/provenance</td><td>—</td><td>—</td><td><strong>None. No provenance field distinguishing manual vs AI exists.</strong></td></tr>
+</table>
+<p><strong>Effect on search:</strong> annotation captions, tags, notes are searched client-side (see 10). <strong>Batch annotation:</strong> not built; "Select many" is only a suggestion.</p>
+
+<!-- ============================================================ -->
+<h2 id="s12">12. AI / automation</h2>
+<table>
+<tr><th>Capability</th><th>Status</th><th>Evidence</th></tr>
+<tr><td>Auto-tagging, descriptions, image understanding, OCR cleanup, embeddings, semantic search, clustering, agent behavior, model/provider choice</td><td><strong>Not implemented, not on the roadmap</strong></td><td>No AI dependency in <code>package.json</code>; v0 spec lists OCR and pgvector as "out until later"; roadmap has no AI issues.</td></tr>
+<tr><td>Color palette extraction and search by color</td><td>Merely discussed</td><td><code>/todo</code> suggestion <em>s-palette</em> (this is algorithmic, not necessarily AI).</td></tr>
+<tr><td>Duplicate detection</td><td>Merely discussed</td><td><code>/todo</code> suggestion <em>s-dupes</em> ("Warn on upload when an image is already kept").</td></tr>
+<tr><td>Smart collections (saved searches)</td><td>Merely discussed</td><td><code>/todo</code> suggestion.</td></tr>
+<tr><td>Resurface ("from your library")</td><td>Merely discussed</td><td><code>/todo</code> suggestion.</td></tr>
+<tr><td>Paste a link → fetch image and source</td><td>Merely discussed</td><td><code>/todo</code> suggestion.</td></tr>
+</table>
+<p>Ignore any assumption that Kept is an "AI-first" product. It is not, currently. A separate note: the internal <em>dashboard</em> uses Claude-generated artifacts for the roadmap, but that is tooling, not product behavior.</p>
+
+<!-- ============================================================ -->
+<h2 id="s13">13. Storage / file handling</h2>
+<h3>Current</h3>
+<ul>
+<li><strong>Seed images:</strong> two collections' JPEGs committed to git and served statically from <code>public/collections/&lt;collection&gt;/{full,thumb}/NNN.jpg</code>. <code>moode-matcha</code>: 160 references (added 2026-09-18). <code>oklab-squares</code>: 5 references (added 2026-09-20). Manifests in <code>src/kept/data/*.json</code> hold file name, type, width, height, bytes.</li>
+<li><strong>User uploads:</strong> IndexedDB DB <code>kept-lab</code>, store <code>uploads</code> (keyPath id), each record holds full Blob, thumb Blob, and facts. Never leaves the device/browser profile.</li>
+<li><strong>Sizes:</strong> full = long edge ≤1600px, thumb = ≤480px, both JPEG q0.82, metadata stripped by canvas redraw. Originals are <strong>not kept</strong>: the original file's bytes are recorded as <code>bytes</code> but the original is discarded.</li>
+<li><strong>Supported types (recognized):</strong> JPEG, PNG, WebP, GIF, HEIC, HEIF, AVIF (subject to browser decode). No PDF, video, SVG handling.</li>
+<li>No dedupe, no deletion of references or uploads, no cache layer beyond the browser's.</li>
+<li>Object URLs (<code>URL.createObjectURL</code>) are created per upload at load and not explicitly revoked (Unknown impact).</li>
+</ul>
+<h3>Planned (KEPT-10, 19, 21)</h3>
+<ul>
+<li>Supabase Storage private bucket <code>kept-assets</code>; 10 MB limit; allowed <code>image/jpeg|png|webp</code>; keys <code>&lt;owner_id&gt;/&lt;ref_id&gt;/full.jpg</code> and <code>thumb.jpg</code>; storage policies require owner folder match and AAL2.</li>
+<li>Library images via signed URLs, batched. Board images via short-lived signed URLs from the <code>board</code> Edge Function (D-2 open; recommended <code>signed</code> over public copies).</li>
+<li>Keep client-side resize; per-file failure cleanup (delete rows and objects on failure).</li>
+<li>Seed <code>moode-matcha</code> into Storage (KEPT-28), then possibly remove <code>public/collections/</code> from git (D-5, open; images remain in history and the repo is public).</li>
+<li>R2 as a later cost escape hatch (KEPT-36).</li>
+<li>Deletion behavior: <strong>Unknown / not yet decided</strong> for references; account deletion (including data) is required for App Store (KEPT-62) but design is undecided.</li>
+</ul>
+<p><strong>Privacy note:</strong> the 160 moode-matcha images are already public on GitHub in the repo's history and <code>main</code>; whether they are the owner's own or third-party images is <em>Unknown</em>.</p>
+
+<!-- ============================================================ -->
+<h2 id="s14">14. Auth / security / privacy</h2>
+<h3>Current (mock)</h3>
+<ul>
+<li>Invite-only in the product copy; single hard-coded lab account (<code>wade</code>; the password is in <code>session.ts</code>, committed publicly — it is explicitly a lab mock, not a real credential).</li>
+<li>Session in <code>sessionStorage</code> (so a refresh mid-2FA stays on <code>/login/mfa</code>) with memory fallback.</li>
+<li>Route gate <code>useAuthGate</code> in <code>KeptApp.tsx</code> is purely client-side. Anyone can read the gate's logic and the mock data; nothing is protected.</li>
+<li>Public repo: AGENTS.md says no personal data, home paths or credentials; a LAN IP currently sits in <code>KeptIos.tsx</code>.</li>
+</ul>
+<h3>Planned</h3>
+<ul>
+<li>Supabase Auth: password + TOTP MFA; <strong>sign-up disabled</strong>; owner account created by hand (KEPT-16).</li>
+<li><strong>RLS is the whole security model</strong> because the browser talks straight to Postgres. One permissive policy per table (<code>owner_id = auth.uid()</code>) plus one <em>restrictive</em> policy requiring <code>(auth.jwt() ->> 'aal') = 'aal2'</code>. Storage policies likewise. Signed-out access only via SECURITY DEFINER functions with narrow return shapes.</li>
+<li>Only the Supabase <strong>publishable</strong> key may appear in client code (<code>VITE_</code> vars); service-role key only in Edge Function secrets/local seed script; never committed.</li>
+<li>Board tokens: unguessable (10 chars base-36 in the mock), rotatable, unpublish immediate for new visits; signed URLs expire (~1 hour). No public gallery, no SEO indexing.</li>
+<li>Username sign-in: D-1 open (recommended Edge Function; alternatives: synthetic emails, public lookup RPC which would allow username enumeration — "not recommended").</li>
+<li>iOS: refresh tokens in Keychain via <code>expo-secure-store</code> (D-10 decided); account deletion in-app and privacy manifest are App Store requirements (KEPT-62/63).</li>
+<li>Dashboard: separate Vercel project with Vercel Authentication; repo is public so anything written into it is world-readable regardless.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="s15">15. Current features</h2>
+<p>Statuses: <strong>Built</strong> · <strong>Working but rough</strong> · <strong>In progress</strong> · <strong>Planned</strong> · <strong>Experimental</strong> · <strong>Removed / deprioritized</strong>. "Built" for web means built on mock data.</p>
+<table>
+<tr><th>Category</th><th>Feature</th><th>Status</th><th>Note</th></tr>
+<tr><td>Public</td><td>Landing page (headline, access, seven actions, project rows)</td><td>Built</td><td></td></tr>
+<tr><td>Public</td><td>Request an invite form</td><td>Working but rough</td><td>Stores only in visitor's browser</td></tr>
+<tr><td>Public</td><td>System map (<code>/map</code>)</td><td>Built</td><td>Internal planning content; slated for cleanup</td></tr>
+<tr><td>Public</td><td>Kept on iOS (<code>/ios</code>)</td><td>Working but rough</td><td>Stale Capacitor plan</td></tr>
+<tr><td>Auth</td><td>Username/password sign-in UI + errors</td><td>Built (mock)</td><td></td></tr>
+<tr><td>Auth</td><td>Two-factor</td><td>Planned</td><td>Placeholder route only</td></tr>
+<tr><td>Auth</td><td>Route gate (aal1/aal2)</td><td>Built (client-side, mock)</td><td></td></tr>
+<tr><td>Library</td><td>Collections index with 2×2 mosaic tiles, search, New collection</td><td>Built</td><td></td></tr>
+<tr><td>Library</td><td>All references section</td><td>Built</td><td></td></tr>
+<tr><td>Library</td><td>Collection page: grid/list, search, description, count/updated</td><td>Built</td><td></td></tr>
+<tr><td>Library</td><td>Rename / delete / move collections or references</td><td>Planned? Unknown</td><td>Only rename references (KEPT-33, later) is on roadmap. Delete/move: <strong>Unknown / not yet decided</strong>.</td></tr>
+<tr><td>Capture</td><td>Upload images with on-device resize, progress rows</td><td>Built (mock storage)</td><td></td></tr>
+<tr><td>Capture</td><td>Paste a URL to keep</td><td>Planned (suggestion only)</td><td></td></tr>
+<tr><td>Capture</td><td>iOS camera/photo import, share extension, background upload queue</td><td>Planned</td><td>KEPT-56/57/58/59</td></tr>
+<tr><td>Annotate</td><td>Notes, tags, pins with captions</td><td>Built (mock persistence)</td><td></td></tr>
+<tr><td>Annotate</td><td>Box annotations</td><td>Planned</td><td>KEPT-32</td></tr>
+<tr><td>Annotate</td><td>Rename reference</td><td>Planned</td><td>KEPT-33</td></tr>
+<tr><td>Search</td><td>Client-side text search</td><td>Built</td><td></td></tr>
+<tr><td>Search</td><td>Server search, command palette</td><td>Planned (later)</td><td>KEPT-34</td></tr>
+<tr><td>Search</td><td>OCR, embeddings, visual similarity</td><td>Removed / deprioritized</td><td>"Out until later"</td></tr>
+<tr><td>Share</td><td>Publish/rotate/unpublish + board + lightbox</td><td>Built (mock; links only work in the owner's browser)</td><td></td></tr>
+<tr><td>Share</td><td>Board link previews (OG cards)</td><td>Planned (later)</td><td>KEPT-35</td></tr>
+<tr><td>Share</td><td>Public gallery of boards</td><td>Removed / deprioritized</td><td>Explicitly excluded</td></tr>
+<tr><td>Account</td><td>Account menu, appearance (light/dark/system)</td><td>Built</td><td></td></tr>
+<tr><td>Account</td><td><code>/todo</code> page</td><td>Built</td><td>Checkbox state in localStorage; hard-coded next steps and suggestions</td></tr>
+<tr><td>Account</td><td>Settings, Referral</td><td>Planned ("Coming soon" pages)</td><td>Referral: members get a few invites to pass on</td></tr>
+<tr><td>Account</td><td>Export, Delete account</td><td>Planned</td><td>Listed in Settings; delete required for App Store</td></tr>
+<tr><td>Backend</td><td>Everything Supabase</td><td>Planned</td><td>Phases p1–p6</td></tr>
+<tr><td>Connect</td><td>Relationships between references / graph</td><td>Removed / deprioritized</td><td>"Comes later"</td></tr>
+<tr><td>iOS</td><td>Native app (tokens, nav, motion foundations, library, viewer, pins, capture, App Store)</td><td>Planned</td><td>p8–p11; wireframes only</td></tr>
+<tr><td>iOS/Platform</td><td>iPad, widgets/Live Activities/Shortcuts, Android, Storage→R2, SwiftUI revisit</td><td>Planned (later)</td><td>KEPT-36, 68–71</td></tr>
+<tr><td>Ideas on <code>/todo</code></td><td>Compare two, select many, masonry boards, export zip/PDF contact sheet, keyboard first, resurface</td><td>Merely discussed</td><td>Not on the roadmap</td></tr>
+<tr><td>Dev tooling</td><td>GuideFrame overlay; sync script; roadmap generator</td><td>Built</td><td></td></tr>
+<tr><td>Internal</td><td>Dashboard (Overview, Roadmap, Decisions, Screens, Notes, Bookmarks)</td><td>Built (local; deploy not done)</td><td>Bookmarks added today, commit <code>0705c1b</code></td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="s16">16. Current screens / routes</h2>
+<table>
+<tr><th>Route</th><th>Purpose / key content</th><th>Actions</th><th>Status</th><th>Main components</th></tr>
+<tr><td><code>/</code></td><td>Landing: headline, intro, Access (Members→Sign in; Everyone else→Request an invite), seven Fundamental actions, project rows (DF.4.2 Visual working surface, RG.001 Reference system, Status Active)</td><td>Open the library</td><td>Built</td><td><code>KeptLanding</code></td></tr>
+<tr><td><code>/login</code></td><td>Username/password</td><td>Continue ›</td><td>Built (mock)</td><td><code>KeptLogin</code>, Base UI Field/Input/Button</td></tr>
+<tr><td><code>/login/mfa</code></td><td>Placeholder two-factor</td><td>Continue to library</td><td>Placeholder</td><td><code>KeptMfaPlaceholder</code> in <code>KeptApp</code></td></tr>
+<tr><td><code>/request</code></td><td>Invite request form</td><td>Send request ›</td><td>Built (mock)</td><td><code>KeptRequest</code></td></tr>
+<tr><td><code>/library</code></td><td>Collections tiles; "All references"</td><td>New collection; search; Grid/List</td><td>Built</td><td><code>KeptLibrary</code>, <code>ReferenceBrowser</code></td></tr>
+<tr><td><code>/library/:collectionId</code></td><td>One collection</td><td>Add images; Share; edit description; grid/list; search</td><td>Built</td><td><code>KeptCollection</code>, <code>KeptUpload</code>, <code>KeptShare</code>, <code>ReferenceBrowser</code></td></tr>
+<tr><td><code>/library/:collectionId/:referenceId</code></td><td>One reference: image, pins, notes, tags, annotations list, collections links, file facts</td><td>Drop pin; edit; prev/next; Esc</td><td>Built</td><td><code>KeptReference</code> (483 lines), <code>PinCanvas</code>, <code>PinList</code></td></tr>
+<tr><td><code>/m/:token</code></td><td>Public board</td><td>Open lightbox; arrows</td><td>Built (mock)</td><td><code>KeptBoard</code></td></tr>
+<tr><td><code>/map</code></td><td>System map: capabilities, domain model, application, etc.</td><td>—</td><td>Built (planning content)</td><td><code>KeptMap</code>, <code>MapLayer</code></td></tr>
+<tr><td><code>/ios</code></td><td>Kept on iOS plan</td><td>—</td><td>Stale</td><td><code>KeptIos</code></td></tr>
+<tr><td><code>/todo</code></td><td>Next steps, suggestions, personal tasks</td><td>Check, add task</td><td>Built</td><td><code>KeptTodo</code></td></tr>
+<tr><td><code>/settings</code>, <code>/referral</code></td><td>"Coming soon" with "What will live here" rows</td><td>—</td><td>Placeholder</td><td><code>KeptAccountPages</code></td></tr>
+<tr><td>Any other path</td><td>"Not found / Not built in the lab yet."</td><td>Back to landing</td><td>Built</td><td><code>KeptComingNext</code></td></tr>
+</table>
+<p>Page titles are set per route (e.g. "Library · KEPT"); collection and reference pages title themselves after data loads.</p>
+
+<!-- ============================================================ -->
+<h2 id="s17">17. Current state of implementation</h2>
+<h3>Definitely works today (on the owner's machine / in a browser)</h3>
+<ul>
+<li>Every route renders; TypeScript builds (<code>npm run build</code> = <code>tsc && vite build</code>; not re-run for this briefing).</li>
+<li>Mock sign-in, session gate, light/dark theme switching.</li>
+<li>Creating collections, uploading images (IndexedDB), editing notes/tags/pins/descriptions with persistence across reloads <em>in that browser</em>.</li>
+<li>Publishing a board and viewing it in the same browser.</li>
+<li>Grid/List, search, keyboard stepping.</li>
+<li>Dashboard runs locally at <code>localhost:5174</code>; adding bookmarks writes <code>dashboard/data/bookmarks.json</code> (tested this session).</li>
+</ul>
+<h3>Mocked / placeholder</h3>
+<ul>
+<li>All auth; all persistence; all sharing; invite requests; MFA (placeholder).</li>
+<li>Reference titles for imported images (numbered, not named).</li>
+<li>Settings, Referral (coming soon pages).</li>
+</ul>
+<h3>Exists only as UI / only as plan</h3>
+<ul>
+<li><strong>UI only:</strong> everything above; the iOS wireframes.</li>
+<li><strong>Backend/data logic only:</strong> nothing. There is no backend logic.</li>
+<li><strong>Scaffolded but incomplete:</strong> the repository/session "seam" (function names and return shapes are the contract for Supabase). The dashboard.</li>
+</ul>
+<h3>Appears broken or misleading</h3>
+<ul>
+<li>Board links do not work for outside viewers (tokens live in the owner's localStorage).</li>
+<li>Invite requests never reach the owner.</li>
+<li><code>/ios</code> describes a dead plan and exposes a LAN IP.</li>
+<li>README says collection images are git-ignored; they are committed.</li>
+<li>Running <code>npm run sync-kept-ui</code> will overwrite <code>repository.ts</code>, <code>session.ts</code> and <code>uploads.ts</code> (and anything else in <code>src/kept</code> except kept-design-only files).</li>
+</ul>
+<h3>Production-ready vs experimental</h3>
+<ul>
+<li><strong>Production-quality:</strong> visual/UI craft of the web screens (parity-verified against the lab).</li>
+<li><strong>Not production-ready:</strong> anything requiring persistence, auth, or sharing beyond one browser.</li>
+<li><strong>Experimental:</strong> iOS direction and the wireframes; the Expo scaffold (not in repo).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="s18">18. Technical debt / risks</h2>
+<table>
+<tr><th>Category</th><th>Risk (factual)</th></tr>
+<tr><td>Architecture</td><td>The sync script overwrites the future data layer (KEPT-6 open). The "seam" only survives if function names/return shapes stay stable; if kept-ui changes a shape, only the typecheck catches it.</td></tr>
+<tr><td>Architecture</td><td>Two ownership models for UI: kept-ui (source) vs kept-design (product); differences live in kept-design-only files. With iOS added, D-9 makes tokens the shared layer but nothing implements it.</td></tr>
+<tr><td>Unclear ownership between systems</td><td>Roadmap is in three places (artifact, repo JSON, dashboard); the artifact is authoritative and can diverge. AGENTS.md points agents at outdated instructions.</td></tr>
+<tr><td>Security</td><td>With the browser talking directly to Postgres, RLS correctness is the entire security model; mistakes are silent. Public repo means anything committed (images, LAN IP, lab credentials, roadmap text) is world-readable. Private images currently committed to public git cannot be un-published from history without rewriting it.</td></tr>
+<tr><td>Storage</td><td>Storage cost/egress for image libraries; mitigated by 1600/480 px derivatives and planned R2 fallback. Originals discarded at upload, so full-resolution files are unrecoverable from Kept (a product decision, undocumented as such).</td></tr>
+<tr><td>Performance</td><td>Client-side load of all references for search and "All references"; signed URLs for every image in a 160-item grid (planned batching). On iOS, image-heavy grids are cited as the classic React Native failure point (Desktop stack doc).</td></tr>
+<tr><td>Search</td><td>No server search yet; scaling beyond memory unaddressed.</td></tr>
+<tr><td>AI cost</td><td>None today (no AI).</td></tr>
+<tr><td>Vendor lock-in</td><td>Supabase (Auth, Storage, RLS, Edge Functions) and Vercel; Base UI; Expo/EAS if chosen. Moderate; the repository seam and Postgres schema are portable.</td></tr>
+<tr><td>UX complexity</td><td>Deliberately minimal UI (no filled buttons) may raise discoverability issues for first-time users; not evaluated.</td></tr>
+<tr><td>iOS</td><td>Decision unresolved (RN/Expo recorded vs SwiftUI argued); 4 of 12 phases (p8–p11, ~100 points) rest on the RN assumption. App Store guideline 4.2 (minimum functionality) is a stated risk; the share extension is the mitigation. Share extensions have ~120 MB memory limit. Reanimated 4 sets a stack floor (Expo 55, RN 0.83).</td></tr>
+<tr><td>Process</td><td>No automated tests or CI. Verification is manual pixel comparison.</td></tr>
+<tr><td>Naming</td><td>iOS bundle identifier is permanent once public; D-7 open (proposed <code>design.kept.app</code>). Separate brand-rename exploration exists on the Desktop (see Glossary) — <em>Unknown</em> whether the product name "Kept" is final.</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="s19">19. Open questions</h2>
+<h3>Product</h3>
+<ul>
+<li>Who is the target user beyond the owner? Is Kept public after invite-only? <em>Unknown.</em></li>
+<li>Is the name "Kept" final? A rename exploration (Stillroom, Larder, Cabinet, Quire, Vellum, Marginalia, etc.) exists on the Desktop, with no trademark/domain checks.</li>
+<li>Will "Connect" (relationships/graph) ever ship? Deferred without a date.</li>
+<li>Are PDFs or non-image references in scope? No evidence either way.</li>
+<li>Do references ever belong to more than one collection? v0 says no; the earlier README implied yes.</li>
+<li>Can items be deleted or moved? Not specified.</li>
+</ul>
+<h3>UX</h3>
+<ul>
+<li>The two-factor screen has not been designed (KEPT-14).</li>
+<li>Box annotation and rename interactions are undesigned.</li>
+<li>How titles should be assigned to imported images ("No. 001") is unresolved.</li>
+<li>Whether the intentionally plain UI should carry over to iOS or use native iOS idioms (D-9 says tokens shared, layout native; native IA is KEPT-42).</li>
+</ul>
+<h3>Technical</h3>
+<ul>
+<li>D-1 username sign-in (rec. Edge Function), D-3 Supabase provisioning (rec. Marketplace), D-4 mock fallback (rec. fallback), D-5 images in git (rec. remove after seed).</li>
+<li>Repo layout for the native app (sibling repo vs monorepo).</li>
+<li>Whether to keep the sync script alive once the data layer diverges.</li>
+</ul>
+<h3>AI</h3>
+<ul>
+<li>Is there any AI role at all? Unspecified anywhere.</li>
+</ul>
+<h3>Storage</h3>
+<ul>
+<li>D-2 how board images are served (rec. signed URLs).</li>
+<li>Whether originals should be preserved.</li>
+<li>Max sizes and formats beyond the planned 10 MB, jpeg/png/webp bucket limit; HEIC handling on web.</li>
+</ul>
+<h3>Search</h3>
+<ul>
+<li>When client-side search stops being enough; FTS ranking; whether to add OCR/vector search.</li>
+</ul>
+<h3>Business</h3>
+<ul>
+<li>Pricing, invite policy, referral mechanics ("members get a few invites"), Apple Developer Program enrollment (KEPT-39), hosting/Supabase billing route (D-3). <em>Nothing decided.</em></li>
+</ul>
+<h3>Launch</h3>
+<ul>
+<li>D-7 name and bundle identifier — "permanent once public; cheapest to settle now" and blocks KEPT-40.</li>
+<li>Web v0 ship is gated behind the whole backend (KEPT-31).</li>
+<li><strong>The most important unresolved question: which native stack for iOS (D-6/D-8 recorded as React Native + Expo vs the SwiftUI case in note n3 and <code>kept-ios-stack.html</code>).</strong> The owner has not re-confirmed the recorded decision after the SwiftUI analysis; it must be reconciled before p8 starts (KEPT-37).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="s20">20. Decisions already made</h2>
+<table>
+<tr><th>Decision</th><th>Current answer</th><th>Evidence</th><th>Locked?</th></tr>
+<tr><td>One product, not a second app</td><td>Build v0 on the existing Kept site</td><td>v0 spec</td><td>Locked</td></tr>
+<tr><td>Web stack</td><td>Vite + React + Base UI; no Next/Tailwind/shadcn/MUI</td><td>v0 spec; package.json</td><td>Locked for v0</td></tr>
+<tr><td>Backend</td><td>Supabase (Postgres, Auth+MFA, private Storage, 2 Edge Functions)</td><td>v0 spec; roadmap; AGENTS.md</td><td>Locked in intent; nothing built</td></tr>
+<tr><td>Access model</td><td>Invite-only, signup off, one owner in v0, TOTP required</td><td>v0 spec; landing copy</td><td>Locked</td></tr>
+<tr><td>Sharing</td><td>Unlisted board at <code>/m/:token</code>; no public gallery</td><td>v0 spec; built mock</td><td>Locked</td></tr>
+<tr><td>Search in v0</td><td>Client-side; no OCR/embeddings</td><td>KEPT-22</td><td>Provisional (until library outgrows it)</td></tr>
+<tr><td>UI source</td><td>kept-ui lab is source of truth for <em>web</em>; kept-design copies it</td><td>README, AGENTS.md</td><td>Locked for web; superseded in principle by D-9 for cross-platform</td></tr>
+<tr><td>UI recreation</td><td>Done and parity-verified</td><td>KEPT-0 done; commit 7e9ddba</td><td>Locked</td></tr>
+<tr><td>Design language</td><td>Base UI homepage-style, Geist 400, grayscale + poppy error</td><td>kept-ui spec</td><td>Locked</td></tr>
+<tr><td>Motion in v0</td><td>CSS only</td><td>kept-ui spec</td><td>Locked for web v0</td></tr>
+<tr><td>Deliberate differences from kept-ui</td><td>Boxed inputs on Sign in and Request an invite; real-path share links</td><td>README; commit a7f71f9</td><td>Locked; do not "fix"</td></tr>
+<tr><td>Secrets policy</td><td>Only publishable key in client; service-role never in <code>VITE_</code></td><td>AGENTS.md</td><td>Locked</td></tr>
+<tr><td>Git policy (owner preference)</td><td>Commit when asked; push to <code>main</code> deploys production</td><td>AGENTS.md; session instructions</td><td>Locked</td></tr>
+<tr><td>Capacitor for iOS</td><td>Rejected</td><td>D-6 text; iOS goal changed to feel-native</td><td>Locked (page still stale)</td></tr>
+<tr><td>D-6 iOS framework</td><td>React Native (recorded chosen)</td><td>roadmap.json</td><td><strong>Provisional / contested</strong> (SwiftUI analysis exists; not re-confirmed)</td></tr>
+<tr><td>D-8 Expo vs bare</td><td>Expo with dev builds (recorded chosen)</td><td>roadmap.json</td><td>Provisional; reverses if SwiftUI wins</td></tr>
+<tr><td>D-9 design tokens</td><td><code>tokens.json</code> as shared layer for web and native</td><td>roadmap.json</td><td>Decided; unimplemented</td></tr>
+<tr><td>D-10 device session storage</td><td>Keychain via <code>expo-secure-store</code></td><td>roadmap.json</td><td>Decided; conditional on Expo</td></tr>
+<tr><td>Roadmap organization</td><td>72 issues / 240 pts / 12 phases, iOS interleaved by dependency; p8 runs parallel with p1</td><td>roadmap.json, note n2</td><td>Current</td></tr>
+<tr><td>Dashboard separate from product</td><td>Own Vite app; own Vercel project with Vercel Authentication (planned)</td><td>dashboard README, note n1</td><td>Locked; the three planning routes remain on the product for now</td></tr>
+<tr><td>Open (undecided)</td><td>D-1, D-2, D-3, D-4, D-5, D-7</td><td>roadmap.json (<code>chosen</code>: null)</td><td>Open</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="s21">21. Roadmap / likely next steps</h2>
+<p>Source: <code>docs/roadmap/roadmap.json</code> (72 issues: 2 done, 7 todo, 63 backlog). The repo's <code>ROADMAP.md</code> and the artifact's own Overview text still say "the UI is finished… no screen changes" for the web work.</p>
+<h3>Immediate (p0 Ground work, and p8 starts that don't depend on the backend)</h3>
+<ul>
+<li>Settle D-1, D-2, D-3, D-4 (KEPT-2..5, todo).</li>
+<li>KEPT-6: stop the sync script overwriting the data layer (gated on D-4).</li>
+<li>KEPT-37: confirm the native framework and retire the Capacitor plan; fix <code>/ios</code>.</li>
+<li>KEPT-38: settle the app name and bundle identifier (D-7).</li>
+<li>Reconcile AGENTS.md and the artifact's stale Overview text.</li>
+<li>Decide whether to merge <code>dashboard-and-roadmap-sync</code> into <code>main</code> (7 commits ahead) — <em>Unknown / not yet decided</em>.</li>
+</ul>
+<h3>Near-term</h3>
+<ul>
+<li><strong>p1 Supabase foundation:</strong> project/local setup (KEPT-7), schema (KEPT-8), RLS (KEPT-9), private bucket (KEPT-10), generated types (KEPT-11).</li>
+<li><strong>p2 Sign-in and 2FA:</strong> Edge Function <code>sign-in</code> (KEPT-12), real session behind synchronous <code>getSession()</code> (KEPT-13), design 2FA screen in kept-ui (KEPT-14), TOTP (KEPT-15), create account by hand (KEPT-16).</li>
+<li><strong>p3 Library data:</strong> adapter structure (KEPT-17), collections (18), references with signed URLs (19), notes/tags/pins (20), uploads to Storage (21), client-side search kept (22).</li>
+<li><strong>p4 Boards</strong> (KEPT-23–25), <strong>p5 Invites</strong> (26–27), <strong>p6 Web v0 ship</strong> (seed moode-matcha, env/secrets, pixel and RLS verification, ship to kept.design: KEPT-28–31).</li>
+<li><strong>p8 iOS foundation</strong> in parallel: Apple Developer Program (39), create app (40), tokens as data (41), native IA (42), type/dark mode/safe areas (43), motion/gesture foundations (44 — "if this cannot hit its frame budget, D-6 gets reopened here"), data contract (45).</li>
+</ul>
+<h3>Later</h3>
+<ul>
+<li><strong>p9 iOS library:</strong> collections home, reference grid (8 pts), viewer with pinch/pan/drag-dismiss (8), swipe between references, native pins, notes/tags, on-device search, "feel pass", image cache/offline reads, wire to Supabase.</li>
+<li><strong>p10 iOS capture:</strong> camera/photo library, share extension (8), App Group handoff, background upload queue (8), native share sheet.</li>
+<li><strong>p11 iOS ship:</strong> Universal Links for boards, in-app account deletion, privacy manifest, icon/launch/store assets, guideline 4.2 review, TestFlight, App Store submission.</li>
+<li><strong>p7 Later:</strong> box annotations, renaming, server search + command palette, board previews, R2, SwiftUI revisit, iPad, widgets/Live Activities/Shortcuts, Android.</li>
+</ul>
+<p>Priorities beyond this ordering (e.g. which iOS or backend milestone comes first in calendar time) are <em>Unknown / not yet decided</em>. No dates exist in the roadmap.</p>
+
+<!-- ============================================================ -->
+<h2 id="s22">22. Glossary</h2>
+<table>
+<tr><th>Term</th><th>Meaning in this project</th></tr>
+<tr><td><strong>Kept</strong></td><td>The product. Tagline "A library you can actually operate." Wordmark is bold uppercase "KEPT" (only bold text in the UI).</td></tr>
+<tr><td><strong>Reference</strong></td><td>The unit of meaning: an image plus title, notes, tags and pins. In SQL: table <code>refs</code>.</td></tr>
+<tr><td><strong>Asset</strong></td><td>The stored file behind a Reference (name, type, dimensions, bytes). One per reference in v0. Not a separate type in current code.</td></tr>
+<tr><td><strong>Collection</strong></td><td>A named group of references; the tile in the library. Id is a slug.</td></tr>
+<tr><td><strong>Pin</strong></td><td>A numbered on-image marker with a caption at normalized x,y. A "box" is the planned rectangle variant.</td></tr>
+<tr><td><strong>Board</strong></td><td>A published, unlisted, read-only, no-chrome view of one collection at <code>/m/&lt;token&gt;</code> ("moodboard" in the v0 spec).</td></tr>
+<tr><td><strong>Token</strong></td><td>The unguessable share id in a board URL; can be rotated ("New link").</td></tr>
+<tr><td><strong>Lab / kept-ui</strong></td><td>The separate repo (<code>w-ade/kept-ui</code>, local <code>~/Developer/Labs/kept-ui</code>) where the UI was designed. Read-only source of truth for the web UI. Its spec is <code>docs/ui.html</code> (Desktop copy: <code>kept-ui.html</code>).</td></tr>
+<tr><td><strong>kept-design</strong></td><td>This repo: the real product (<code>usekept/kept-design</code>), forked from the lab. Not to be confused with the earlier "KEPT-DESIGN 1010 comp" landing design.</td></tr>
+<tr><td><strong>Seam</strong></td><td>The pair <code>repository.ts</code> + <code>session.ts</code> whose exported function names and return shapes are held fixed so Supabase can replace the mock behind them.</td></tr>
+<tr><td><strong>Sync script</strong></td><td><code>npm run sync-kept-ui</code>: one-way copy from kept-ui's <code>src/kept</code> into this repo, rewriting hash routes to real paths.</td></tr>
+<tr><td><strong>AAL1 / AAL2</strong></td><td>Supabase authentication assurance levels: password only vs password + second factor (TOTP). RLS is planned to require AAL2.</td></tr>
+<tr><td><strong>RLS</strong></td><td>Row-level security in Postgres; the planned whole security model.</td></tr>
+<tr><td><strong>Poppy (<code>poppy-t1</code>)</strong></td><td>The only accent color: errors and destructive actions.</td></tr>
+<tr><td><strong>KeptBody / KeptGrid / KeptContents / KeptCol-*</strong></td><td>CSS class conventions in <code>kept.css</code> for the page grid: <code>display: contents</code> sections, label/body/wide/hero columns.</td></tr>
+<tr><td><strong>Shells</strong></td><td>Marketing, Auth, App, Board — the four page frames.</td></tr>
+<tr><td><strong>GuideFrame</strong></td><td>Dev-only grid overlay package (<code>@guideframe/react</code>), toggled with Cmd/Ctrl+G.</td></tr>
+<tr><td><strong>D-n / KEPT-n / p-n</strong></td><td>Roadmap identifiers: D = decision, KEPT = issue (KEPT-0…71), p = phase (p0…p11).</td></tr>
+<tr><td><strong>Fundamental actions</strong></td><td>Capture, Index, Annotate, Organize, Query, Retrieve, Connect (Connect deferred).</td></tr>
+<tr><td><strong>DF.4.2 / RG.001</strong></td><td>Labels on the landing "The project" section: "Visual working surface" and "Reference system". Internal meaning beyond the labels: <em>Unknown</em>.</td></tr>
+<tr><td><strong>moode-matcha, oklab-squares</strong></td><td>The two seeded collections (160 and 5 images).</td></tr>
+<tr><td><strong>Dashboard</strong></td><td>Internal PM app in <code>dashboard/</code> (not user-facing).</td></tr>
+<tr><td><strong>Feel pass / Phantom / Aave</strong></td><td>The iOS quality bar: native-feeling gestures and motion, "not heavy wrapped slop". "Feel pass" is roadmap issue KEPT-53.</td></tr>
+<tr><td><strong>Desktop planning docs</strong></td><td><code>kept-v0.html</code> (v0 plan), <code>kept-ui.html</code>, <code>kept-design-checklist.html</code> (recreation checklist), <code>kept-ios-stack.html</code> (stack analysis), <code>kept-rebrand-names.html</code>, <code>kept-rebrand-words.html</code>, <code>kept-brand-word-bank.html</code> (brand/name exploration; describes Kept as "a private visual asset library and reference workspace").</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="s23">23. Final handoff summary — if you only read one section</h2>
+
+<div class="note">
+<p><strong>What Kept is.</strong> A private, invite-only, single-owner library for visual references: collections of images, each with notes, tags and on-image pins, searchable, and publishable as an unlisted read-only board. "A library you can actually operate."</p>
+
+<p><strong>What changed most recently (2026-09-18 → 09-20).</strong> (1) The web UI was rebuilt from the kept-ui lab and declared pixel-complete. (2) The plan for iOS flipped from a Capacitor web-view wrapper to a native rebuild; the roadmap records React Native + Expo as decided, but a same-day analysis argues for SwiftUI and the two are unreconciled. (3) The roadmap grew from 37 backend issues to 72 (240 points, 12 phases) with iOS interleaved. (4) An internal dashboard (Overview, Roadmap, Decisions, Screens, Notes, Bookmarks) was added and kept separate from the product.</p>
+
+<p><strong>Most important current feature.</strong> The Reference page and its pin/note/tag annotation model, inside a library you can browse and search. Most important <em>planned</em> feature: the iOS Share-to-Kept extension with a background upload queue.</p>
+
+<p><strong>Most important unresolved question.</strong> Which native iOS stack (D-6/D-8: React Native + Expo recorded; SwiftUI argued). Four of twelve roadmap phases depend on it, and it also controls D-8/D-10 and the app name/bundle identifier (D-7). Six of ten decisions (D-1, 2, 3, 4, 5, 7) are open.</p>
+
+<p><strong>What is actually built today.</strong> A complete, polished web front end (16 routes and states) running on browser-only mock data: mock auth, collections, uploads (IndexedDB), notes/tags/pins (localStorage), boards (localStorage), two seeded image collections (160 + 5). <strong>No backend, no Supabase code, no real accounts, no real sharing, no search beyond client-side text, no AI, no tests, no iOS app.</strong></p>
+
+<p><strong>What to understand before making further product decisions.</strong></p>
+<ul>
+<li>Nothing persists or shares beyond one browser until Supabase is built. "Built" in the feature list means built on mocks.</li>
+<li>The <code>src/kept</code> code is synced from a separate lab repo and will be overwritten by the sync script until KEPT-6 is done; do not put backend code in synced files.</li>
+<li>Do not invent screens here; new UI is designed in kept-ui first and approved before syncing (AGENTS.md).</li>
+<li>The repo is public: no secrets, personal data or home paths. The 160 seed images and a LAN IP are already in it.</li>
+<li>Pushing <code>main</code> deploys production; the owner asks for commits and pushes explicitly. The current branch is not on <code>main</code>.</li>
+<li>AGENTS.md, the <code>/ios</code> page and the roadmap artifact's Overview text are stale in specific, known ways (sections 8 and 21).</li>
+<li>AI/OCR/semantic search are not part of the plan yet; do not assume them.</li>
+<li>Do not assume older framing (canvas-first, graph/Connect, Capacitor, kept-ui as sole UI source of truth) is still current.</li>
+</ul>
+</div>
+
+<p class="meta">End of briefing. Gaps flagged "Unknown / not yet decided" are deliberate; they were not invented.</p>
+</body>
+</html>

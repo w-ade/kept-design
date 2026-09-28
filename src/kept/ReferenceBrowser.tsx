@@ -3,8 +3,9 @@ import { Field } from '@base-ui/react/field';
 import { Input } from '@base-ui/react/input';
 import { Toggle } from '@base-ui/react/toggle';
 import { ToggleGroup } from '@base-ui/react/toggle-group';
-import { ImageFill, SearchIcon, sourceLabel } from './parts.tsx';
+import { ImageFill, SearchIcon } from './parts.tsx';
 import type { Reference } from './repository.ts';
+import { sourceLabel } from './utils.ts';
 
 type View = 'grid' | 'list';
 

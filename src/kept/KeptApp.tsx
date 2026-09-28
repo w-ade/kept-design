@@ -39,7 +39,7 @@ const APP_NAV = [
 ];
 
 const TITLES: Record<string, string> = {
-  '': 'KEPT — A library you can actually operate.',
+  '': 'KEPT — A working library for visual research.',
   login: 'Sign in · KEPT',
   'login/mfa': 'Two-factor · KEPT',
   request: 'Request an invite · KEPT',
@@ -87,6 +87,30 @@ function useAuthGate(route: string) {
   return redirect !== null;
 }
 
+function contentForRoute(route: string): React.ReactNode {
+  if (route === '') return <KeptLanding />;
+  if (route === 'login') return <KeptLogin />;
+  if (route === 'login/mfa') return <KeptMfaPlaceholder />;
+  if (route === 'request') return <KeptRequest />;
+  if (route === 'roadmap') return <KeptRoadmap />;
+  if (route === 'library') return <KeptLibrary />;
+  if (route === 'lab') return <KeptLab />;
+  if (route === 'map') return <KeptMap />;
+  if (route === 'ios') return <KeptIos />;
+  if (route === 'todo') return <KeptTodo />;
+  if (route === 'settings') return <KeptSettings />;
+  if (route === 'referral') return <KeptReferral />;
+  if (route.startsWith('library/')) {
+    const [, collectionId, referenceId] = route.split('/');
+    return referenceId ? (
+      <KeptReference key={referenceId} collectionId={collectionId} referenceId={referenceId} />
+    ) : (
+      <KeptCollection key={collectionId} collectionId={collectionId} />
+    );
+  }
+  return <KeptComingNext label={COMING_NEXT[route]} />;
+}
+
 export function KeptApp({ route }: { route: string }) {
   const redirecting = useAuthGate(route);
 
@@ -106,29 +130,7 @@ export function KeptApp({ route }: { route: string }) {
   if (shell === 'board') return <KeptBoard key={route} token={route.slice(2)} />;
   const nav = shell === 'app' ? APP_NAV : shell === 'auth' ? AUTH_NAV : MARKETING_NAV;
   const session = getSession();
-
-  let content: React.ReactNode;
-  if (route === '') content = <KeptLanding />;
-  else if (route === 'login') content = <KeptLogin />;
-  else if (route === 'login/mfa') content = <KeptMfaPlaceholder />;
-  else if (route === 'request') content = <KeptRequest />;
-  else if (route === 'roadmap') content = <KeptRoadmap />;
-  else if (route === 'library') content = <KeptLibrary />;
-  else if (route === 'lab') content = <KeptLab />;
-  else if (route === 'map') content = <KeptMap />;
-  else if (route === 'ios') content = <KeptIos />;
-  else if (route === 'todo') content = <KeptTodo />;
-  else if (route === 'settings') content = <KeptSettings />;
-  else if (route === 'referral') content = <KeptReferral />;
-  else if (route.startsWith('library/')) {
-    const [, collectionId, referenceId] = route.split('/');
-    content = referenceId ? (
-      <KeptReference key={referenceId} collectionId={collectionId} referenceId={referenceId} />
-    ) : (
-      <KeptCollection key={collectionId} collectionId={collectionId} />
-    );
-  }
-  else content = <KeptComingNext label={COMING_NEXT[route]} />;
+  const content = contentForRoute(route);
 
   return (
     <div className="KeptBody">

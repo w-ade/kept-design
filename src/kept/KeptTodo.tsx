@@ -118,7 +118,8 @@ export function KeptTodo() {
     setDraft('');
   };
 
-  const doneCount = (tasks: Task[]) => tasks.filter((t) => saved.done.includes(t.id)).length;
+  const done = React.useMemo(() => new Set(saved.done), [saved.done]);
+  const doneCount = (tasks: Task[]) => tasks.filter((task) => done.has(task.id)).length;
 
   return (
     <>
@@ -136,7 +137,7 @@ export function KeptTodo() {
         id="kept-todo-now"
         heading="NOW"
         tasks={NOW}
-        done={saved.done}
+        done={done}
         onToggle={toggle}
         meta={`Make Kept useful. · ${doneCount(NOW)} of ${NOW.length} done`}
       />
@@ -151,7 +152,7 @@ export function KeptTodo() {
           {NEXT_GROUPS.map((group) => (
             <section key={group.heading} className="KeptStack KeptStack-0 KeptStretch">
               <h3 className="KeptText1 KeptMuted">{group.heading.toUpperCase()}</h3>
-              <TaskList tasks={group.tasks} done={saved.done} onToggle={toggle} />
+              <TaskList tasks={group.tasks} done={done} onToggle={toggle} />
             </section>
           ))}
         </div>
@@ -161,7 +162,7 @@ export function KeptTodo() {
         id="kept-todo-later"
         heading="LATER"
         tasks={LATER}
-        done={saved.done}
+        done={done}
         onToggle={toggle}
         meta="Expand the system."
         muted
@@ -179,7 +180,7 @@ export function KeptTodo() {
           {saved.mine.length > 0 && (
             <TaskList
               tasks={saved.mine}
-              done={saved.done}
+              done={done}
               onToggle={toggle}
               onRemove={(id) =>
                 update({
@@ -231,7 +232,7 @@ function TaskSection({
   meta: string;
   muted?: boolean;
   tasks: Task[];
-  done: string[];
+  done: ReadonlySet<string>;
   onToggle: (id: string, checked: boolean) => void;
 }) {
   return (
@@ -259,14 +260,14 @@ function TaskList({
   onRemove,
 }: {
   tasks: Task[];
-  done: string[];
+  done: ReadonlySet<string>;
   onToggle: (id: string, checked: boolean) => void;
   onRemove?: (id: string) => void;
 }) {
   return (
     <ul className="KeptList">
       {tasks.map((task) => {
-        const checked = done.includes(task.id);
+        const checked = done.has(task.id);
         return (
           <li key={task.id} className="KeptListItem KeptTodoRow" data-done={checked || undefined}>
             <label className="KeptTodoLabel">
