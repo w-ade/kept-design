@@ -19,11 +19,6 @@ export function AccountMenu({ username }: { username: string }) {
       <Menu.Portal>
         <Menu.Positioner className="KeptMenuPositioner" sideOffset={8} align="start">
           <Menu.Popup className="KeptMenuPopup">
-            <Menu.LinkItem className="KeptMenuItem KeptText1" href="/todo" closeOnClick>
-              To do
-            </Menu.LinkItem>
-
-            <Menu.Separator className="KeptMenuSeparator" />
             <Menu.Group>
               <Menu.GroupLabel className="KeptMenuLabel KeptText1">Appearance</Menu.GroupLabel>
               <Menu.RadioGroup

@@ -20,6 +20,8 @@ const SECTIONS: { value: LabCategory; label: string; description: string }[] = [
   { value: 'experiment', label: 'Experiments', description: 'Small things to prototype or test.' },
   { value: 'concept', label: 'Concepts', description: 'Ideas to think through before they become commitments.' },
   { value: 'ios', label: 'iOS / Native', description: 'Native capture, library, and interaction ideas.' },
+  { value: 'map', label: 'Reference Map', description: 'How Kept’s product, data, and infrastructure fit together.' },
+  { value: 'build', label: 'Current Build', description: 'The preserved NOW, NEXT, and LATER working plan.' },
 ];
 
 export function KeptLab() {

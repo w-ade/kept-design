@@ -8,11 +8,7 @@ export const href = {
   roadmap: '/roadmap',
   library: '/library',
   lab: '/lab',
-  map: '/map',
-  ios: '/ios',
-  todo: '/todo',
   settings: '/settings',
-  referral: '/referral',
   collection: (collectionId: string) => `/library/${encodeURIComponent(collectionId)}`,
   reference: (collectionId: string, referenceId: string) =>
     `/library/${encodeURIComponent(collectionId)}/${encodeURIComponent(referenceId)}`,
