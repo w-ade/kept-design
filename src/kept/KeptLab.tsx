@@ -12,7 +12,8 @@ import {
   type LabCategory,
   type LabItem,
 } from './labRepository.ts';
-import { ArrowIcon, formatDate, Separator } from './parts.tsx';
+import { ArrowIcon, Separator } from './parts.tsx';
+import { formatDate } from './utils.ts';
 
 const SECTIONS: { value: LabCategory; label: string; description: string }[] = [
   { value: 'reference', label: 'References', description: 'Things worth studying.' },

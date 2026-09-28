@@ -40,11 +40,15 @@ export function KeptLogin() {
           errors={errors}
           onFormSubmit={async (values) => {
             setPending(true);
-            const { error } = await signInWithPassword(
-              String(values.username),
-              String(values.password),
-            );
-            setPending(false);
+            let error;
+            try {
+              ({ error } = await signInWithPassword(
+                String(values.username),
+                String(values.password),
+              ));
+            } finally {
+              setPending(false);
+            }
             if (error) {
               setErrors({ [error.field]: error.message });
               return;

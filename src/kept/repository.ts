@@ -122,6 +122,34 @@ function writeCreated() {
 
 // Uploaded references per collection, newest first.
 const uploaded = new Map<string, Reference[]>();
+const uploadObjectUrls = new Set<string>();
+
+function createUploadObjectUrl(blob: Blob) {
+  const url = URL.createObjectURL(blob);
+  uploadObjectUrls.add(url);
+  return url;
+}
+
+function revokeUploadObjectUrls() {
+  for (const url of uploadObjectUrls) URL.revokeObjectURL(url);
+  uploadObjectUrls.clear();
+}
+
+// Uploaded references stay cached for the document lifetime, so their URLs must remain valid
+// until the page is actually discarded. A persisted pagehide is the back-forward cache and can
+// return, so keep the URLs alive in that case.
+function handlePageHide(event: PageTransitionEvent) {
+  if (!event.persisted) revokeUploadObjectUrls();
+}
+
+window.addEventListener('pagehide', handlePageHide);
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    window.removeEventListener('pagehide', handlePageHide);
+    revokeUploadObjectUrls();
+  });
+}
 
 // Reference count and mosaic covers come from uploads plus imported images.
 function withCounts(c: Collection): Collection {
@@ -160,8 +188,8 @@ function uploadToReference(u: StoredUpload): Reference {
     width: u.width,
     height: u.height,
     bytes: u.bytes,
-    imageUrl: URL.createObjectURL(u.full),
-    thumbUrl: URL.createObjectURL(u.thumb),
+    imageUrl: createUploadObjectUrl(u.full),
+    thumbUrl: createUploadObjectUrl(u.thumb),
     ...edits.references[u.id],
   };
 }

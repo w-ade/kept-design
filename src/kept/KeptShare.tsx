@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Button } from '@base-ui/react/button';
 import { Dialog } from '@base-ui/react/dialog';
 import { Input } from '@base-ui/react/input';
-import { ArrowIcon, formatDate } from './parts.tsx';
+import { ArrowIcon } from './parts.tsx';
 import {
   getShare,
   publishCollection,
@@ -12,10 +12,7 @@ import {
   type Share,
 } from './repository.ts';
 import { getSession } from './session.ts';
-
-export function boardUrl(token: string) {
-  return `${window.location.origin}/m/${token}`;
-}
+import { boardUrl, formatDate } from './utils.ts';
 
 // Publish a collection as an unlisted board, copy its link, rotate it or take it down.
 export function ShareDialog({ collection }: { collection: Collection }) {
@@ -32,8 +29,11 @@ export function ShareDialog({ collection }: { collection: Collection }) {
 
   const run = async (action: () => Promise<Share | null | undefined>) => {
     setPending(true);
-    setShare((await action()) ?? null);
-    setPending(false);
+    try {
+      setShare((await action()) ?? null);
+    } finally {
+      setPending(false);
+    }
     setCopied(false);
   };
 

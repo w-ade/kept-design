@@ -3,9 +3,6 @@ import { Field } from '@base-ui/react/field';
 import {
   BackLink,
   Separator,
-  formatDate,
-  plural,
-  useDocumentTitle,
 } from './parts.tsx';
 import {
   getCollection,
@@ -17,6 +14,7 @@ import {
 import { ShareDialog } from './KeptShare.tsx';
 import { ReferenceBrowser } from './ReferenceBrowser.tsx';
 import { UploadDialog } from './KeptUpload.tsx';
+import { formatDate, plural, useDocumentTitle } from './utils.ts';
 
 // /library/:collectionId: the references in one collection, as a grid or a ruled list.
 export function KeptCollection({ collectionId }: { collectionId: string }) {

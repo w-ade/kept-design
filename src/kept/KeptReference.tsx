@@ -7,10 +7,6 @@ import {
   BackLink,
   ImageFill,
   Separator,
-  formatBytes,
-  formatDate,
-  fullImageStyle,
-  useDocumentTitle,
 } from './parts.tsx';
 import {
   getCollection,
@@ -20,6 +16,7 @@ import {
   type Pin,
   type Reference,
 } from './repository.ts';
+import { formatBytes, formatDate, fullImageStyle, useDocumentTitle } from './utils.ts';
 import { navigate } from './navigate.ts';
 
 // /library/:collectionId/:referenceId: one reference with its details, notes, tags and pins.

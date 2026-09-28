@@ -4,6 +4,7 @@ import { Dialog } from '@base-ui/react/dialog';
 import { addUploads, type Collection, type Reference, type UploadStatus } from './repository.ts';
 
 interface Item {
+  id: string;
   name: string;
   status: UploadStatus | 'waiting';
 }
@@ -35,12 +36,22 @@ export function UploadDialog({
       (f) => f.type.startsWith('image/') || /\.(heic|heif|avif)$/i.test(f.name),
     );
     if (files.length === 0 || busy) return;
-    setItems(files.map((f) => ({ name: f.name, status: 'waiting' })));
-    setBusy(true);
-    const added = await addUploads(collection.id, files, (index, status) =>
-      setItems((current) => current.map((item, i) => (i === index ? { ...item, status } : item))),
+    setItems(
+      files.map((file, index) => ({
+        id: `${file.name}-${file.size}-${file.lastModified}-${index}`,
+        name: file.name,
+        status: 'waiting',
+      })),
     );
-    setBusy(false);
+    setBusy(true);
+    let added: Reference[];
+    try {
+      added = await addUploads(collection.id, files, (index, status) =>
+        setItems((current) => current.map((item, i) => (i === index ? { ...item, status } : item))),
+      );
+    } finally {
+      setBusy(false);
+    }
     if (added.length > 0) onAdded(added);
   };
 
@@ -119,8 +130,8 @@ export function UploadDialog({
                     : `Added ${done} of ${items.length}.${failed ? ` ${failed} couldn’t be read.` : ''}`}
                 </p>
                 <ul className="KeptList KeptUploadList">
-                  {items.map((item, i) => (
-                    <li key={`${item.name}-${i}`} className="KeptListItem KeptUploadRow">
+                  {items.map((item) => (
+                    <li key={item.id} className="KeptListItem KeptUploadRow">
                       <span className="KeptText1 KeptTruncate">{item.name}</span>
                       <span
                         className="KeptText1 KeptMuted KeptUploadStatus"
