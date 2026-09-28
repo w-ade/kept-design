@@ -6,6 +6,7 @@ export const href = {
   mfa: '/login/mfa',
   request: '/request',
   library: '/library',
+  lab: '/lab',
   map: '/map',
   ios: '/ios',
   todo: '/todo',
