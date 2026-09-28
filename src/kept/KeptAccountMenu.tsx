@@ -61,9 +61,6 @@ export function AccountMenu({ username }: { username: string }) {
             <Menu.LinkItem className="KeptMenuItem KeptText1" href="/settings" closeOnClick>
               Settings
             </Menu.LinkItem>
-            <Menu.LinkItem className="KeptMenuItem KeptText1" href="/referral" closeOnClick>
-              Referral
-            </Menu.LinkItem>
 
             <Menu.Separator className="KeptMenuSeparator" />
             <Menu.Item

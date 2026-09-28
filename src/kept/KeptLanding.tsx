@@ -21,9 +21,6 @@ export function KeptLanding() {
     <>
       <section className="KeptContents">
         <h1 className="KeptDisplay KeptCol-hero">A library you can actually operate.</h1>
-        <div className="KeptCol-full">
-          <ArrowLink href="/library">Open the library</ArrowLink>
-        </div>
       </section>
 
       <section className="KeptContents">
@@ -39,9 +36,7 @@ export function KeptLanding() {
           Access
         </h2>
         <div className="KeptStack KeptStack-4 KeptCol-body">
-          <p className="KeptText2">
-            Kept is invite-only while it's in early development. Every account is let in by hand.
-          </p>
+          <p className="KeptText2">Kept is in early development.</p>
           <ul className="KeptList KeptListFill">
             <li className="KeptListItem">
               <span className="KeptText2">Members</span>
@@ -50,9 +45,9 @@ export function KeptLanding() {
               </span>
             </li>
             <li className="KeptListItem">
-              <span className="KeptText2">Everyone else</span>
+              <span className="KeptText2">Roadmap</span>
               <span className="KeptText2">
-                <ArrowLink href="/request">Request an invite</ArrowLink>
+                <ArrowLink href="/roadmap">See what’s being built</ArrowLink>
               </span>
             </li>
           </ul>

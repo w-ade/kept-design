@@ -26,11 +26,7 @@ export function KeptLogin() {
 
       <section className="KeptContents">
         <p className="KeptText2 KeptCol-body">
-          Kept is invite-only. Sign in with the username you were given, or{' '}
-          <a className="KeptLink" href="/request">
-            request an invite
-          </a>
-          .
+          Kept is in early development. Sign in with the username you were given.
         </p>
       </section>
 
