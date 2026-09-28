@@ -5,6 +5,7 @@ import { KeptReferral, KeptSettings } from './KeptAccountPages.tsx';
 import { KeptBoard } from './KeptBoard.tsx';
 import { KeptCollection } from './KeptCollection.tsx';
 import { KeptLanding } from './KeptLanding.tsx';
+import { KeptLab } from './KeptLab.tsx';
 import { KeptLibrary } from './KeptLibrary.tsx';
 import { KeptLogin } from './KeptLogin.tsx';
 import { KeptIos } from './KeptIos.tsx';
@@ -29,7 +30,12 @@ const MARKETING_NAV = [
   { href: '/map', label: 'Map', route: 'map' },
 ];
 const AUTH_NAV = MARKETING_NAV.slice(0, 1);
-const APP_NAV = MARKETING_NAV.slice(1);
+const APP_NAV = [
+  { href: '/library', label: 'Library', route: 'library' },
+  { href: '/lab', label: 'Lab', route: 'lab' },
+  { href: '/map', label: 'Map', route: 'map' },
+  { href: '/todo', label: 'To do', route: 'todo' },
+];
 
 const TITLES: Record<string, string> = {
   '': 'KEPT — A library you can actually operate.',
@@ -37,6 +43,7 @@ const TITLES: Record<string, string> = {
   'login/mfa': 'Two-factor · KEPT',
   request: 'Request an invite · KEPT',
   library: 'Library · KEPT',
+  lab: 'Lab · KEPT',
   map: 'System map · KEPT',
   ios: 'Kept on iOS · KEPT',
   todo: 'To do · KEPT',
@@ -49,7 +56,7 @@ const COMING_NEXT: Record<string, string> = {};
 function shellFor(route: string): Shell {
   if (route.startsWith('m/')) return 'board';
   if (route.startsWith('login') || route === 'request') return 'auth';
-  if (route === 'library' || route.startsWith('library/')) return 'app';
+  if (route === 'library' || route.startsWith('library/') || route === 'lab') return 'app';
   // Account pages, from the menu under your name
   if (route === 'todo' || route === 'settings' || route === 'referral') return 'app';
   return 'marketing';
@@ -98,6 +105,7 @@ export function KeptApp({ route }: { route: string }) {
   else if (route === 'login/mfa') content = <KeptMfaPlaceholder />;
   else if (route === 'request') content = <KeptRequest />;
   else if (route === 'library') content = <KeptLibrary />;
+  else if (route === 'lab') content = <KeptLab />;
   else if (route === 'map') content = <KeptMap />;
   else if (route === 'ios') content = <KeptIos />;
   else if (route === 'todo') content = <KeptTodo />;
