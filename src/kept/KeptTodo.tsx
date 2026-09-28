@@ -5,7 +5,7 @@ import { Field } from '@base-ui/react/field';
 import { Input } from '@base-ui/react/input';
 import { Separator } from './parts.tsx';
 
-// /todo (signed in): next steps for Kept, suggestions for where to take it, and your own tasks.
+// /todo (signed in): Kept's focused roadmap and your own tasks.
 // Checked items and your own tasks are remembered in this browser.
 
 interface Task {
@@ -14,33 +14,65 @@ interface Task {
   detail?: string;
 }
 
-const NEXT_STEPS: Task[] = [
-  { id: 'backend', title: 'Stand up the v0 backend', detail: 'Supabase project, schema, Storage, row-level security, signup off.' },
-  { id: 'repository', title: 'Swap the mock data for Supabase', detail: 'Same functions, real data: uploads, notes and boards sync everywhere.' },
-  { id: 'signin', title: 'Real sign-in', detail: 'Usernames mapped to an email behind the scenes.' },
-  { id: 'mfa', title: 'Build the two-factor screen', detail: 'Set up with a QR code, then a six-digit code each sign-in.' },
-  { id: 'invites', title: 'Make invite requests reach you', detail: 'Save them to Supabase, or a form service that emails you.' },
-  { id: 'boxes', title: 'Box annotations', detail: 'Drag to draw a box on the image, alongside pins.' },
-  { id: 'titles', title: 'Rename references', detail: 'Edit titles; uploads use the file name today.' },
-  { id: 'search', title: 'Search everything', detail: 'A command-palette search (Base UI Combobox), one keystroke away.' },
-  { id: 'board-links', title: 'Board links on kept.design', detail: 'Use the real domain in share links; the iOS app needs it.' },
-  { id: 'home-screen', title: 'Home screen app', detail: 'Manifest, icons and safe areas: Stage 0 of the iOS plan.' },
-  { id: 'deploy', title: 'Ship to kept.design', detail: 'Vercel environment variables, then point the domain.' },
+const NOW: Task[] = [
+  { id: 'backend', title: 'Build the data layer', detail: 'Supabase schema, storage, and row-level security.' },
+  { id: 'repository', title: 'Connect the library', detail: 'Replace mock references, boards, and notes with persisted data.' },
+  { id: 'signin', title: 'Real sign-in', detail: 'Authenticate the actual owner account.' },
+  { id: 'mfa', title: 'Two-factor authentication', detail: 'Protect each sign-in with a second factor.' },
+  { id: 'reference-detail', title: 'Reference detail view', detail: 'Create a proper home for an individual saved reference.' },
+  { id: 'reference-metadata', title: 'Reference metadata', detail: 'Store the context that makes a reference useful later: title, source, notes, tags, dates, and related information.' },
+  { id: 'titles', title: 'Rename references', detail: 'Allow saved references to have proper titles instead of relying on filenames.' },
+  { id: 'boxes', title: 'Box annotations', detail: 'Drag to mark a specific region of an image alongside existing pin-style annotations.' },
+  { id: 'search', title: 'Search the library', detail: 'Find references by title, notes, tags, board, source, and other saved metadata.' },
+  { id: 'deploy', title: 'Ship to kept.design', detail: 'Configure production environment variables and point the real domain at the working app.' },
 ];
 
-const SUGGESTIONS: Task[] = [
-  { id: 's-keep-anywhere', title: 'Keep from anywhere', detail: 'An iOS share extension and a desktop “Keep this” bookmarklet: save an image and where it came from in one tap.' },
-  { id: 's-paste-link', title: 'Paste a link to keep it', detail: 'Drop a URL; Kept fetches the image and records the source.' },
-  { id: 's-palette', title: 'Color palettes', detail: 'Pull the main colors from each image, then search and filter by color.' },
-  { id: 's-smart', title: 'Smart collections', detail: 'Saved searches that fill themselves, like “packaging, added this month”.' },
-  { id: 's-bulk', title: 'Select many', detail: 'Multi-select to tag, move or remove in one go.' },
-  { id: 's-masonry', title: 'Boards in their real shapes', detail: 'A masonry board that keeps each image’s proportions.' },
-  { id: 's-compare', title: 'Compare two', detail: 'References side by side, pins and all, for a crit.' },
-  { id: 's-keys', title: 'Keyboard first', detail: '/ to search, J and K to move, T to tag, P to pin.' },
-  { id: 's-dupes', title: 'Catch duplicates', detail: 'Warn on upload when an image is already kept.' },
-  { id: 's-export', title: 'Take it with you', detail: 'Export a collection as a zip, or a PDF contact sheet.' },
-  { id: 's-previews', title: 'Share previews', detail: 'A proper preview card when a board link is pasted into a chat.' },
-  { id: 's-resurface', title: 'Resurface', detail: 'A weekly “from your library”: things you kept and forgot.' },
+const NEXT_GROUPS: { heading: string; tasks: Task[] }[] = [
+  {
+    heading: 'Capture',
+    tasks: [
+      { id: 's-keep-anywhere', title: 'Keep from anywhere', detail: 'Save an image and its source from an iOS share extension or desktop “Keep this” action.' },
+      { id: 's-paste-link', title: 'Paste a link to keep it', detail: 'Drop in a URL; Kept fetches the image and records the source.' },
+      { id: 's-dupes', title: 'Catch duplicates', detail: 'Warn when an image appears to have already been kept.' },
+    ],
+  },
+  {
+    heading: 'Organize',
+    tasks: [
+      { id: 's-bulk', title: 'Select many', detail: 'Multi-select references to tag, move, edit, or remove them in one action.' },
+      { id: 's-smart', title: 'Smart collections', detail: 'Saved searches that automatically fill themselves based on rules.' },
+      { id: 's-palette', title: 'Color palettes', detail: 'Extract primary colors from references so the library can be searched or filtered by color.' },
+    ],
+  },
+  {
+    heading: 'Work',
+    tasks: [
+      { id: 's-compare', title: 'Compare references', detail: 'Place two references side by side with annotations visible for critique and comparison.' },
+      { id: 's-masonry', title: 'Boards in their real shapes', detail: 'Display board contents in a masonry layout that preserves each reference’s proportions.' },
+    ],
+  },
+  {
+    heading: 'Find',
+    tasks: [
+      { id: 's-resurface', title: 'Resurface', detail: 'Periodically bring back useful references that were saved and forgotten.' },
+      { id: 's-command-search', title: 'Command search', detail: 'Open search from anywhere with `/` or ⌘K.' },
+    ],
+  },
+];
+
+const LATER: Task[] = [
+  { id: 'later-ios', title: 'iOS app', detail: 'Build the native Kept experience when the core web product is stable.' },
+  { id: 'home-screen', title: 'Home screen / PWA', detail: 'Add installable web app behavior, icons, manifests, and safe-area support.' },
+  { id: 'invites', title: 'Invite requests', detail: 'Allow people to request access once Kept is ready for users beyond the owner.' },
+  { id: 'later-sharing', title: 'Public and shared boards', detail: 'Create shareable board views with controlled visibility.' },
+  { id: 's-previews', title: 'Share previews', detail: 'Generate proper preview cards when Kept links are pasted into chats or social apps.' },
+  { id: 's-export', title: 'Exports', detail: 'Export references or boards as files, archives, or contact sheets.' },
+  { id: 'later-auto-metadata', title: 'Automatic metadata', detail: 'Generate suggested tags, descriptions, and other metadata on capture.' },
+  { id: 'later-ocr', title: 'OCR', detail: 'Extract readable text from saved references.' },
+  { id: 'later-embeddings', title: 'Embeddings', detail: 'Generate semantic representations for stronger retrieval and similarity search.' },
+  { id: 'later-visual-similarity', title: 'Visual similarity', detail: 'Find references that look visually related.' },
+  { id: 'later-related', title: 'Related references', detail: 'Surface meaningful relationships between saved items.' },
+  { id: 'later-provenance', title: 'Provenance', detail: 'Track where references came from and how they relate to sources, projects, and each other.' },
 ];
 
 const KEY = 'kept.lab.todo.v1';
@@ -96,33 +128,50 @@ export function KeptTodo() {
 
       <section className="KeptContents">
         <p className="KeptText2 KeptCol-body">
-          What’s next for Kept, and ideas for where to take it. Check things off as you go.
+          A focused path from useful to expansive. Check things off as you go.
         </p>
       </section>
 
       <TaskSection
-        id="kept-todo-next"
-        heading="Next steps"
-        tasks={NEXT_STEPS}
+        id="kept-todo-now"
+        heading="NOW"
+        tasks={NOW}
         done={saved.done}
         onToggle={toggle}
-        meta={`${doneCount(NEXT_STEPS)} of ${NEXT_STEPS.length} done`}
-      />
-
-      <TaskSection
-        id="kept-todo-ideas"
-        heading="Suggestions"
-        tasks={SUGGESTIONS}
-        done={saved.done}
-        onToggle={toggle}
-        meta="Ideas to elevate Kept"
+        meta={`Make Kept useful. · ${doneCount(NOW)} of ${NOW.length} done`}
       />
 
       <Separator />
-      <section className="KeptContents" aria-labelledby="kept-todo-mine">
+      <section className="KeptContents" aria-labelledby="kept-todo-next">
         <div className="KeptStack KeptStack-0 KeptCol-label">
-          <h2 id="kept-todo-mine" className="KeptText2">
-            Yours
+          <h2 id="kept-todo-next" className="KeptText2">NEXT</h2>
+          <span className="KeptText1 KeptMuted">Expand the core loop.</span>
+        </div>
+        <div className="KeptCol-body KeptStack KeptStack-4 KeptStretch">
+          {NEXT_GROUPS.map((group) => (
+            <section key={group.heading} className="KeptStack KeptStack-0 KeptStretch">
+              <h3 className="KeptText1 KeptMuted">{group.heading.toUpperCase()}</h3>
+              <TaskList tasks={group.tasks} done={saved.done} onToggle={toggle} />
+            </section>
+          ))}
+        </div>
+      </section>
+
+      <TaskSection
+        id="kept-todo-later"
+        heading="LATER"
+        tasks={LATER}
+        done={saved.done}
+        onToggle={toggle}
+        meta="Grow the system."
+        muted
+      />
+
+      <Separator />
+      <section className="KeptContents" aria-labelledby="kept-todo-custom">
+        <div className="KeptStack KeptStack-0 KeptCol-label">
+          <h2 id="kept-todo-custom" className="KeptText2">
+            CUSTOM
           </h2>
           <span className="KeptText1 KeptMuted">Anything else</span>
         </div>
@@ -174,11 +223,13 @@ function TaskSection({
   id,
   heading,
   meta,
+  muted,
   ...list
 }: {
   id: string;
   heading: string;
   meta: string;
+  muted?: boolean;
   tasks: Task[];
   done: string[];
   onToggle: (id: string, checked: boolean) => void;
@@ -188,7 +239,7 @@ function TaskSection({
       <Separator />
       <section className="KeptContents" aria-labelledby={id}>
         <div className="KeptStack KeptStack-0 KeptCol-label">
-          <h2 id={id} className="KeptText2">
+          <h2 id={id} className={`KeptText2${muted ? ' KeptMuted' : ''}`}>
             {heading}
           </h2>
           <span className="KeptText1 KeptMuted">{meta}</span>
